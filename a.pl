@@ -7,10 +7,11 @@
 :- dynamic(equip/1).
 :- dynamic(enemyposition/3).
 :- dynamic(enemycount/1).
-:- dynamic(exist/3).
+:- dynamic(existarmor/2).
+:- dynamic(existweapon/2).
 :- dynamic(inventory/1).
 :- dynamic(step/1).
-
+:- dynamic(ammo/1).
 
 inc :-
 	retract(step(X)),
@@ -23,6 +24,7 @@ start :-
 	asserta(playerposition(2,2)),
 	asserta(stamina(100)),
 	asserta(armor(0)),
+	asserta(exist)
 	write('======================================================='), nl,
 	write('=                         _             _             ='), nl,
 	write('=                        | |           ( )            ='), nl,
@@ -68,6 +70,8 @@ start :-
 	write('    X = inaccessible'), nl,
 	nl.
 
+/*temporary rules */
+
 deadzone(X, Y) :-
 	step(Steps),
 	Div is Steps // 5 + 1,
@@ -90,8 +94,25 @@ printmap(X, Y) :-
 	), write(' '), Next_Y is Y + 1, printmap(X, Next_Y));
 	X == 21.
 
-/*temporary rules */
+/*for movement*/
 w :- inc, retract(playerposition(X, Y)), Next_y is Y-1, asserta(playerposition(X, Next_y)).
 s :- inc, retract(playerposition(X, Y)), Next_x is X+1, asserta(playerposition(Next_x, Y)).
 e :- inc, retract(playerposition(X, Y)), Next_y is Y+1, asserta(playerposition(X, Next_y)).
 n :- inc, retract(playerposition(X, Y)), Next_x is X-1, asserta(playerposition(Next_x, Y)).
+
+/*inventory rules */
+printinventory([]) :- write('').
+printinventory([H|T]) :- write(H), write(' '), printinventory(T).  
+addinventory([]) :- !.
+addinventory([H|T]) :- retract(inventory(X)), !, append([H], X, Y), asserta(inventory(Y)).
+
+/*player status*/
+status :- retract(health(Health)), !, write('Health: '), write(Health), nl,
+		retract(armor(Armor)), !, write('Armor: '), write(Armor), nl,
+		retract(weapon(Weapon)), write('Weapon: '), write(Weapon), nl,
+		retract(ammo(Ammo)), write('Ammo: '), write(Ammo), nl,
+		retract(inventory(Inventory)), write('Inventory: '), printinventory(Inventory), nl.
+
+
+/*take an object and placed it to inventory */
+take :- retract(playerposition(POSX, POXY)), 

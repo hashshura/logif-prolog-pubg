@@ -10,6 +10,7 @@
 :- dynamic(exist/3).
 :- dynamic(inventory/1).
 :- dynamic(step/1).
+:- dynamic(status/1).
 
 
 step(0).
@@ -71,11 +72,8 @@ start :-
 
 deadzone(X, Y) :-
 	step(Steps),
-<<<<<<< HEAD
 	Div is Steps//5 + 1,
-=======
 	Div is Steps // 5 + 1,
->>>>>>> e7807808ecf380ed5b6eab90a7231a3a152fcf16
 	(
 	X =< Div, !;
 	Y =< Div, !;
@@ -101,5 +99,6 @@ s :- inc, retract(playerposition(X, Y)), Next_x is X+1, asserta(playerposition(N
 e :- inc, retract(playerposition(X, Y)), Next_y is Y+1, asserta(playerposition(X, Next_y)).
 n :- inc, retract(playerposition(X, Y)), Next_x is X-1, asserta(playerposition(Next_x, Y)).
 
-isdead :- (retract(health(X)), X <= 0); (retract(playerposition(X, Y)), deadzone(X, Y), gameOver).  
-gameOver :- 
+status(X) :- write('irfan').
+# isdead :- (retract(health(X)), X <= 0); (retract(playerposition(X, Y)), deadzone(X, Y), gameOver).  
+# gameOver :- .
