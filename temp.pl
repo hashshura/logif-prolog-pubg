@@ -70,12 +70,12 @@ start :-
 
 deadzone(X, Y) :-
 	step(Steps),
-	Div is Steps / 5 + 1,
+	Div is Steps // 5 + 1,
 	(
-	X == Div, !;
-	Y == Div, !;
-	Divl is 21 - Div, X == Divl, !;
-	Divl is 21 - Div, Y == Divl, !
+	X =< Div, !;
+	Y =< Div, !;
+	Divl is 21 - Div, X >= Divl, !;
+	Divl is 21 - Div, Y >= Divl, !
 	).
 	
 map :-
