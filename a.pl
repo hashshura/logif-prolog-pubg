@@ -83,15 +83,43 @@ map :-
 	
 printmap(X, Y) :-
 	(Y == 21, !, nl, Next_X is X + 1, printmap(Next_X, 1));
-	(X < 21, !, write(' '), (
-		(playerposition(X, Y), write('P'), !); 
-		(deadzone(X, Y), write('X'), !);
-		write('_')
-	), write(' '), Next_Y is Y + 1, printmap(X, Next_Y));
+	(X < 21, !, write(' '),
+		(
+			(playerposition(X, Y), write('P'), !); 
+			(deadzone(X, Y), write('X'), !);
+			write('_')
+		),
+		write(' '), Next_Y is Y + 1, printmap(X, Next_Y));
 	X == 21.
+	
+
+look :-
+	playerposition(X, Y),
+	Startpx is X-1,
+	Startpy is Y-1,
+	printlook(Startpx, Startpy).
+	
+printlook(X, Y) :-
+	playerposition(Px, Py),
+	Endpy is Py + 2,
+	Endpx is Px + 2,
+	Startpy is Py - 1,
+	(
+		(Y == Endpy, !, nl, Next_X is X + 1, printlook(Next_X, Startpy));
+		(X < Endpx, !, write(' '),
+		(
+			(playerposition(X, Y), write('P'), !); 
+			(deadzone(X, Y), write('X'), !);
+			/* tambahin rule kayak "existweapon" dll di sini */
+			write('_')
+		),
+		write(' '), Next_Y is Y + 1, printlook(X, Next_Y));
+		X == Endpx
+	).
 
 /*temporary rules */
 w :- inc, retract(playerposition(X, Y)), Next_y is Y-1, asserta(playerposition(X, Next_y)).
 s :- inc, retract(playerposition(X, Y)), Next_x is X+1, asserta(playerposition(Next_x, Y)).
 e :- inc, retract(playerposition(X, Y)), Next_y is Y+1, asserta(playerposition(X, Next_y)).
 n :- inc, retract(playerposition(X, Y)), Next_x is X-1, asserta(playerposition(Next_x, Y)).
+
