@@ -10,12 +10,23 @@
 :- dynamic(exist/3).
 :- dynamic(inventory/1).
 :- dynamic(step/1).
-
+:- dynamic(enemyweapon/3).
 
 inc :-
 	retract(step(X)),
 	Next_X is X+1,
 	asserta(step(Next_X)).
+
+createenemies :-
+	asserta(enemyposition(1,2,3)),
+	asserta(enemyweapon(1,ak47)),
+	asserta(enemyposition(2,5,8)),
+	asserta(enemyweapon(2,ak47)),
+	asserta(enemyposition(3,9,1)),
+	asserta(enemyweapon(3,ak47)),
+	asserta(enemyposition(4,4,5)),
+	asserta(enemyweapon(4,ak47)),
+	asserta(enemycount(4)).
 
 start :-
 	asserta(step(0)),
@@ -23,6 +34,7 @@ start :-
 	asserta(playerposition(2,2)),
 	asserta(stamina(100)),
 	asserta(armor(0)),
+	createenemies,
 	write('======================================================='), nl,
 	write('=                         _             _             ='), nl,
 	write('=                        | |           ( )            ='), nl,
@@ -83,15 +95,24 @@ map :-
 	
 printmap(X, Y) :-
 	(Y == 21, !, nl, Next_X is X + 1, printmap(Next_X, 1));
-	(X < 21, !, write(' '),
-		(
-			(playerposition(X, Y), write('P'), !); 
-			(deadzone(X, Y), write('X'), !);
-			write('_')
-		),
-		write(' '), Next_Y is Y + 1, printmap(X, Next_Y));
+	(X < 21, !, write(' '), (
+		(playerposition(X, Y), write('P'), !); 
+		(deadzone(X, Y), write('X'), !);
+		write('_')
+	), write(' '), Next_Y is Y + 1, printmap(X, Next_Y));
 	X == 21.
+
+rest :-
+	inc, enemywalk(1), retract(stamina(Prev)), Now is Prev + 10, Now > 100, !, asserta(stamina(100));
+	asserta(stamina(Now)).
 	
+enemywalk(Id) :-
+	enemycount(N), Id =< N, retract(enemyposition(Id,X,Y)), playerposition(Xp,Yp),
+		(X > Xp, !, X1 is X - 1, asserta(enemyposition(Id,X1,Y)), NextId is Id + 1, enemywalk(NextId);
+		X < Xp, !, X1 is X + 1, asserta(enemyposition(Id,X1,Y)), NextId is Id + 1, enemywalk(NextId);
+		Y > Yp, !, Y1 is Y - 1, asserta(enemyposition(Id,X,Y1)), NextId is Id + 1, enemywalk(NextId);
+		Y < Yp, !, Y1 is Y + 1, asserta(enemyposition(Id,X,Y1)), NextId is Id + 1, enemywalk(NextId)).
+
 
 look :-
 	playerposition(X, Y),
@@ -108,6 +129,7 @@ printlook(X, Y) :-
 		(Y == Endpy, !, nl, Next_X is X + 1, printlook(Next_X, Startpy));
 		(X < Endpx, !, write(' '),
 		(
+			(enemyposition(Id,X,Y), write('E'), !);
 			(playerposition(X, Y), write('P'), !); 
 			(deadzone(X, Y), write('X'), !);
 			/* tambahin rule kayak "existweapon" dll di sini */
@@ -115,11 +137,11 @@ printlook(X, Y) :-
 		),
 		write(' '), Next_Y is Y + 1, printlook(X, Next_Y));
 		X == Endpx
-	).
+).
+
 
 /*temporary rules */
 w :- inc, retract(playerposition(X, Y)), Next_y is Y-1, asserta(playerposition(X, Next_y)).
 s :- inc, retract(playerposition(X, Y)), Next_x is X+1, asserta(playerposition(Next_x, Y)).
 e :- inc, retract(playerposition(X, Y)), Next_y is Y+1, asserta(playerposition(X, Next_y)).
 n :- inc, retract(playerposition(X, Y)), Next_x is X-1, asserta(playerposition(Next_x, Y)).
-
