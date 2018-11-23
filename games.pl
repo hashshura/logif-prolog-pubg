@@ -406,9 +406,12 @@ take(X) :- isammo(X), retract(playerposition(PX, PY)), asserta(playerposition(PX
             ammoposition(X, PX, PY), takeammo(PX, PY), !.
 take(X) :- write(X), write(' is not available in this area.'), nl,!.
 
-takeweapon(X, Y) :- retract(weaponposition(Weapon, X, Y)), addinventory(Weapon, X, Y).
-takearmor(X, Y) :- retract(armorposition(Armor, X, Y)), addinventory(Armor, X, Y).
-takemedicine(X, Y) :- retract(medicineposition(Medicine, X, Y)), addinventory(Medicine,X,Y).
+takeweapon(X, Y) :- retract(weaponposition(Weapon, X, Y)), addinventory(Weapon, X, Y),!;
+					asserta(weaponposition(Weapon, X, Y)).
+takearmor(X, Y) :- retract(armorposition(Armor, X, Y)), addinventory(Armor, X, Y),!;
+				   asserta(armorposition(Armor, X, Y)).
+takemedicine(X, Y) :- retract(medicineposition(Medicine, X, Y)), addinventory(Medicine,X,Y),!;
+					  asserta(medicineposition(Medicine, X, Y)).
 takeammo(X, Y) :- retract(ammoposition(Ammo, X, Y)), addammo(Ammo, X, Y). 
 
 /*use an object in inventory, and removed it from inventory */
