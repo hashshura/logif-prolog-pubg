@@ -19,6 +19,7 @@
 :- dynamic(existammo/3).
 :- dynamic(existarmor/3).
 :- dynamic(ammo/1).
+:- dynamic(armorlist/2).
 
 inc :-
 	retract(step(X)),
@@ -47,7 +48,7 @@ start :-
     asserta(weapon('none')),
 	asserta(inventory([])),
 	asserta(ammo(0)),
-	createenemies, existammo, existarmor, existweapon, existmedicine, !,
+	createenemies, existammo, existarmor, existweapon, existmedicine, armorinit, !,
 	write('======================================================='), nl,
 	write('=                         _             _             ='), nl,
 	write('=                        | |           ( )            ='), nl,
@@ -131,6 +132,13 @@ enemywalk(Id) :-
 
 look :-
 	playerposition(X, Y),
+	(
+		(enemyposition(Id,X,Y), write('In your position, There is Enemy'), nl, !);
+		(medicineposition(Id,X,Y), write('In your position, There is '), write(Id), nl, !);
+		(weaponposition(Id,X,Y), write('In your position, There is '), write(Id), nl, !);
+		(armorposition(_,X,Y), write('In your position, There is '), write(Id), nl, !);
+		(playerposition(X,Y))
+	),
 	Startpx is X-1,
 	Startpy is Y-1,
 	printlook(Startpx, Startpy).
@@ -144,11 +152,12 @@ printlook(X, Y) :-
 		(Y == Endpy, !, nl, Next_X is X + 1, printlook(Next_X, Startpy));
 		(X < Endpx, !, write(' '),
 		(
-			(enemyposition(Id,X,Y), write('E'), !);
-			(playerposition(X, Y), write('P'), !); 
 			(deadzone(X, Y), write('X'), !);
-			(existarmor, armorposition(_,X,Y), write('A'),!);
-			(existweapon, weaponposition(_,X,Y), write('W'),!);
+			(enemyposition(Id,X,Y), write('E'), !);
+			(medicineposition(Id,X,Y), write('M'), !);
+			(weaponposition(Id,X,Y), write('W'), !);
+			(armorposition(_,X,Y), write('A'),!);
+			(playerposition(X, Y), write('P'), !); 
 			
 			write('_')
 		),
@@ -166,6 +175,12 @@ existarmor :-
 	asserta(armorposition(kopyah, 4,12)),
 	asserta(armorposition(helmet, 5, 13)).
 	
+armorinit :-
+	asserta(armorlist(hat,20)),
+	asserta(armorlist(vest,20)),
+	asserta(armorlist(helmet,20)),
+	asserta(armorlist(kopyah,20)).
+
 existweapon :-
 	asserta(weaponposition(ak47,15,15)),
 	asserta(weaponposition(pistol,2,3)),
@@ -175,6 +190,13 @@ existweapon :-
 	asserta(weaponposition(grenade,15,15)),
 	asserta(weaponposition(grenade,3,7)),
 	asserta(weaponposition(pistol, 6,6)).
+
+weaponinit :- 
+	asserta(weaponlist(ak47,70)),
+	asserta(weaponlist(pistol,30)),
+	asserta(weaponlist(watergun,20)),
+	asserta(weaponlist(sword,35)),
+	asserta(weaponlist(grenade, 25)).
 	
 existammo :-
 	asserta(ammoposition(pistol, 2,4)),
@@ -184,8 +206,7 @@ existammo :-
 existmedicine :- 
     asserta(medicineposition(bandage, 3, 7)),
     asserta(medicineposition(bandage, 6, 15)),
-    asserta(medicineposition(bandage, 20, 10)).
-	
+    asserta(medicineposition(bandage, 20, 10)).	
 
 /*temporary rules */
 w :- inc, retract(playerposition(X, Y)), Next_y is Y-1, asserta(playerposition(X, Next_y)).
@@ -266,6 +287,7 @@ take(X) :- write(X), write(' is not available in this area.'), nl,!.
 takeweapon(X, Y) :- retract(weaponposition(Weapon, X, Y)),addinventory(Weapon, X, Y).
 takearmor(X, Y) :- retract(armorposition(Armor, X, Y)), addarmor(Armor, X, Y).
 takemedicine(X, Y) :- retract(medicineposition(Medicine, X, Y)), addmedicine(Medicine,X,Y).
+takeammo(X, Y) :- retract(ammoposition(Ammo,X, Y)).
 
 /*use an object in inventory, and removed it from inventory */
 use(X) :- isexist(X), isweapon(X), retract(weapon(W)), write(X), write(' is equipped.'), nl, asserta(weapon(X)), removeobject(X), changeweapon(W), !. 
@@ -277,3 +299,23 @@ use(X) :- isexist(X), (X == 'kopyah'), retract(armor(Armor)), asserta(armor(Armo
 changeweapon(X) :- (X \== 'none'), retract(inventory(Inventory)), isiinventory(Inventory, Frek), (Frek < 10), 
 					append([X], Inventory, TY), asserta(inventory(TY)), !.
 changeweapon(X) :- retract(inventory(Inventory)), asserta(inventory(Inventory)), !.
+
+use(X) :- isexist(X), (X == 'bandage'), retract(health(H)), asserta(health(H+10)), removeobject(X), write('Your Health is increasing 10 units!'), nl.
+% use(X) :- isexist(X), armorlist(X,Val),retract(armor(Armor)), ArmorNow is Armor + Val, asserta(armor(ArmorNow)), removeobject(X),write('Your Armor is increasing '),write(Val),write(' units!'), nl.
+
+save(Filename):-
+	/* Function to save file */
+	
+	open(Filename, write, Stream),
+
+	/* Get Data */
+	health(Health),
+	armor(Armor),
+	ammo(Ammo),
+
+	/* Write player data */
+	write(Stream, Health), nl(Stream),
+	write(Stream, Armor), nl(Stream),
+	write(Stream, Ammo), nl(Stream),
+	write('Save data successfully created !'), nl,
+	close(Stream).
