@@ -223,20 +223,20 @@ addinventory(Object, X, Y) :- retract(inventory(Inventory)), asserta(inventory(I
 
 
 /*Armor rules */
-addarmor(Armor, X, Y) :- (Armor == 'hat'),retract(armor(Ar)), (Ar + 5 =< 100), asserta(armor(Ar)), write('You took the '), write(Armor),nl.
+addarmor(Armor, X, Y) :- (Armor == 'hat'),retract(armor(Ar)), (Ar + 5 =< 100), asserta(armor(Ar)), addinventory(Armor,X,Y).
 addarmor(Armor, X, Y) :- (Armor == 'hat'), retract(armor(Ar)), (Ar + 5 > 100), asserta(armor(Ar)), asserta(armorposition(Armor, X, Y)).
 
-addarmor(Armor, X, Y) :- (Armor == 'vest'), retract(armor(Ar)), (Ar + 10 =< 100), asserta(armor(Ar)),  write('You took the '), write(Armor),nl.
+addarmor(Armor, X, Y) :- (Armor == 'vest'), retract(armor(Ar)), (Ar + 10 =< 100), asserta(armor(Ar)), addinventory(Armor,X,Y).
 addarmor(Armor, X, Y) :- (Armor == 'vest'), retract(armor(Ar)), (Ar + 10 > 100), asserta(armor(Ar)), asserta(armorposition(Armor, X, Y)).
 
-addarmor(Armor, X, Y) :- (Armor == 'helmet'), retract(armor(Ar)), (Ar + 15 =< 100), asserta(armor(Ar)), write('You took the '), write(Armor),nl.
+addarmor(Armor, X, Y) :- (Armor == 'helmet'), retract(armor(Ar)), (Ar + 15 =< 100), asserta(armor(Ar)), addinventory(Armor,X,Y).
 addarmor(Armor, X, Y) :- (Armor == 'helmet'), retract(armor(Ar)), (Ar + 15 > 100), asserta(armor(Ar)), asserta(armorposition(Armor, X, Y)).
 
-addarmor(Armor, X, Y) :- (Armor == 'kopyah'), retract(armor(Ar)), (Ar + 20 =< 100), asserta(armor(Ar)),  write('You took the '), write(Armor),nl.
+addarmor(Armor, X, Y) :- (Armor == 'kopyah'), retract(armor(Ar)), (Ar + 20 =< 100), asserta(armor(Ar)), addinventory(Armor,X,Y).
 addarmor(Armor, X, Y) :- (Armor == 'kopyah'), retract(armor(Ar)), (Ar + 20 > 100), asserta(armor(Ar)), asserta(armorposition(Armor, X, Y)).
 
 /*Medicine rules */
-addmedicine(Medicine, X, Y) :- (Medicine == 'bandage'), retract(health(H)), (H + 10 =< 100), asserta(health(H)), write('You took the bandage!'), nl.
+addmedicine(Medicine, X, Y) :- (Medicine == 'bandage'), retract(health(H)), (H + 10 =< 100), asserta(health(H)), addinventory(Armor,X,Y).
 addmedicine(Medicine, X, Y) :- (Medicine == 'bandage'), retract(health(H)), (H + 10 > 100), asserta(health(H)), asserta(medicineposition(Medicine, X, Y)).
 
 
@@ -268,9 +268,12 @@ takearmor(X, Y) :- retract(armorposition(Armor, X, Y)), addarmor(Armor, X, Y).
 takemedicine(X, Y) :- retract(medicineposition(Medicine, X, Y)), addmedicine(Medicine,X,Y).
 
 /*use an object in inventory, and removed it from inventory */
-use(X) :- isexist(X), isweapon(X), write(X), write(' is equipped.'), nl, asserta(weapon(X)), removeobject(X), !. 
-use(X) :- isexist(X), (X == 'bandage'), retract(health(H)), asserta(health(H+10)), removeobject(X), write('Your Health is increasing 10 units!'), nl.
-use(X) :- isexist(X), (X == 'hat'), retract(armor(Armor)), asserta(armor(Armor+5)), removeobject(X), write('Your Armor is increasing 5 units!'), nl.
-use(X) :- isexist(X), (X == 'vest'), retract(armor(Armor)), asserta(armor(Armor+10)), removeobject(X), write('Your Armor is increasing 10 units!'), nl.
-use(X) :- isexist(X), (X == 'helmet'), retract(armor(Armor)), asserta(armor(Armor+15)), removeobject(X), write('Your Armor is increasing 15 units!'), nl.
-use(X) :- isexist(X), (X == 'kopyah'), retract(armor(Armor)), asserta(armor(Armor+20)), removeobject(X), write('Your Armor is increasing 20 units!'), nl.
+use(X) :- isexist(X), isweapon(X), retract(weapon(W)), write(X), write(' is equipped.'), nl, asserta(weapon(X)), removeobject(X), changeweapon(W), !. 
+use(X) :- isexist(X), (X == 'bandage'), retract(health(H)), asserta(health(H+10)), removeobject(X), write('Your Health is increasing 10 units!'), nl, !.
+use(X) :- isexist(X), (X == 'hat'), retract(armor(Armor)), asserta(armor(Armor+5)), removeobject(X), write('Your Armor is increasing 5 units!'), nl, !.
+use(X) :- isexist(X), (X == 'vest'), retract(armor(Armor)), asserta(armor(Armor+10)), removeobject(X), write('Your Armor is increasing 10 units!'), nl, !.
+use(X) :- isexist(X), (X == 'helmet'), retract(armor(Armor)), asserta(armor(Armor+15)), removeobject(X), write('Your Armor is increasing 15 units!'), nl, !.
+use(X) :- isexist(X), (X == 'kopyah'), retract(armor(Armor)), asserta(armor(Armor+20)), removeobject(X), write('Your Armor is increasing 20 units!'), nl, !.
+changeweapon(X) :- (X \== 'none'), retract(inventory(Inventory)), isiinventory(Inventory, Frek), (Frek < 10), 
+					append([X], Inventory, TY), asserta(inventory(TY)), !.
+changeweapon(X) :- retract(inventory(Inventory)), asserta(inventory(Inventory)), !.
