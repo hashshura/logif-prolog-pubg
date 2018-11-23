@@ -293,3 +293,20 @@ takeammo(X, Y) :- retract(ammoposition(Ammo,X, Y)).
 use(X) :- isexist(X), isweapon(X), write(X), write(' is equipped.'), nl, asserta(weapon(X)), removeobject(X), !. 
 use(X) :- isexist(X), (X == 'bandage'), retract(health(H)), asserta(health(H+10)), removeobject(X), write('Your Health is increasing 10 units!'), nl.
 use(X) :- isexist(X), armorlist(X,Val),retract(armor(Armor)), ArmorNow is Armor + Val, asserta(armor(ArmorNow)), removeobject(X),write('Your Armor is increasing '),write(Val),write(' units!'), nl.
+
+save(Filename):-
+	/* Function to save file */
+	
+	open(Filename, write, Stream),
+
+	/* Get Data */
+	health(Health),
+	armor(Armor),
+	ammo(Ammo),
+
+	/* Write player data */
+	write(Stream, Health), nl(Stream),
+	write(Stream, Armor), nl(Stream),
+	write(Stream, Ammo), nl(Stream),
+	write('Save data successfully created !'), nl,
+	close(Stream).
