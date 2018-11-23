@@ -44,7 +44,7 @@ start :-
     asserta(weapon('none')),
 	asserta(inventory([])),
 	asserta(ammo(0)),
-	spawnenemies, spawnammo, spawnarmor, spawnweapon, spawnmedicine, armorinit, !,
+	spawnenemies, spawnammo, spawnarmor, spawnweapon, spawnmedicine, armorinit, weaponinit, !,
 	write('======================================================='), nl,
 	write('=                         _             _             ='), nl,
 	write('=                        | |           ( )            ='), nl,
@@ -161,7 +161,9 @@ printwalk :-
 			(deadzone(X, Ynp), write('To the west is the deadzone. '), !);
 			(write('To the west is an open field. ')))
 		)
-	).
+	),
+	step(Step), Mod is Step mod 5,
+	(Mod == 0, nl, write('A gust of wind sweeps by, the battle area has been reduced!'), !; Mod \= 0).
 	
 surrounding :-
 	playerposition(X, Y),
@@ -180,9 +182,9 @@ printsurrounding(X, Y) :-
 		(Y == Endpy, !, Next_X is X + 1, printsurrounding(Next_X, Startpy));
 		(X < Endpx, !,
 		(
-			((enemyposition(Id,X,Y), write('You spot an enemy hiding nearby. '), !); 1 == 1),
-			((medicineposition(Id,X,Y), write('There is a medicine on the ground. '), !); 1 == 1),
-			((weaponposition(Id,X,Y), write('A weapon lies near you. '), !); 1 == 1),
+			((enemyposition(_,X,Y), write('You spot an enemy hiding nearby. '), !); 1 == 1),
+			((medicineposition(_,X,Y), write('There is a medicine on the ground. '), !); 1 == 1),
+			((weaponposition(_,X,Y), write('A weapon lies near you. '), !); 1 == 1),
 			((armorposition(_,X,Y), write('You see an armor. '), !); 1 == 1)
 		),
 		Next_Y is Y + 1, printsurrounding(X, Next_Y));
@@ -206,9 +208,9 @@ printlook(X, Y) :-
 		(X < Endpx, !, write(' '),
 		(
 			(deadzone(X, Y), write('X'), !);
-			(enemyposition(Id,X,Y), write('E'), !);
-			(medicineposition(Id,X,Y), write('M'), !);
-			(weaponposition(Id,X,Y), write('W'), !);
+			(enemyposition(_,X,Y), write('E'), !);
+			(medicineposition(_,X,Y), write('M'), !);
+			(weaponposition(_,X,Y), write('W'), !);
 			(armorposition(_,X,Y), write('A'),!);
 			(playerposition(X, Y), write('P'), !); 
 			
