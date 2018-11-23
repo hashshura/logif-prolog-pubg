@@ -308,6 +308,8 @@ weaponinit :-
 	 
 	
 spawnammo :-
+	asserta(ammoposition(peluruwatergun, 3,3)),
+	asserta(ammoposition(peluruak47, 2,2)),
 	asserta(ammoposition(pelurupistol, 2,4)),
 	asserta(ammoposition(peluruak47, 4,6)),
 	asserta(ammoposition(peluruwatergun, 5,6)).
@@ -370,17 +372,21 @@ addinventory(Object, X, Y) :- retract(inventory(Inventory)), isiinventory(Invent
 
 addinventory(Object, X, Y) :- write('Inventory is full!'), nl.
 
-addammo(Ammo, X, Y) :- (Ammo == pelurupistol), retract(ammoweapon(pelurupistol, P)), YY is P + 3, asserta(ammoweapon(Ammo, YY)), !.
-addammo(Ammo, X, Y) :- (Ammo == peluruak47), retract(ammoweapon(peluruak47, P)), YY is P + 1, asserta(ammoweapon(Ammo, YY)), !.
-addammo(Ammo, X, Y) :- (Ammo == peluruwatergun), retract(ammoweapon(peluruwatergun, P)), YY is P+5, asserta(ammoweapon(Ammo, YY)), !. 
+addammo(Ammo, X, Y) :- (Ammo == pelurupistol), !, retract(ammoweapon(pelurupistol, P)), YY is P + 3, asserta(ammoweapon(Ammo, YY)), !.
+addammo(Ammo, X, Y) :- (Ammo == peluruak47), !, retract(ammoweapon(peluruak47, P)), YY is P + 1, asserta(ammoweapon(Ammo, YY)), !.
+addammo(Ammo, X, Y) :- (Ammo == peluruwatergun), !, retract(ammoweapon(peluruwatergun, P)), YY is P+5, asserta(ammoweapon(Ammo, YY)), !. 
 
 printstatusinventory(I) :- isiinventory(I,X), (X == 0), jumlahammo(Y), (Y == 0), write('Your inventory is empty!'), nl, !.
 printstatusinventory(I) :- isiinventory(I,XX), (XX > 0), jumlahammo(YY), (YY == 0), printinventory(I), !.
-printstatusinventory(I) :- isiinventory(I,XXX), (XXX > 0), jumlahammo(YYY), (YYY > 0), printinventory(I), printinventoryammo, !.
+printstatusinventory(I) :- isiinventory(I,XXX), (XXX > 0), jumlahammo(YYY), (YYY > 0), printinventory(I), printinventoryammo1, printinventoryammo2, printinventoryammo3, !.
+printstatusinventory(I) :- isiinventory(I,XXXX), (XXXX == 0), jumlahammo(YYYY), (YYYY > 0), printinventoryammo1, printinventoryammo2, printinventoryammo3.
 
-printinventoryammo :- ammoweapon(peluruak47, X), (X > 0), write(peluruak47), nl.
-printinventoryammo :- ammoweapon(pelurupistol, X), (X > 0), write(pelurupistol), nl.
-printinventoryammo :- ammoweapon(peluruwatergun, X), (X > 0), write(peluruwatergun), nl.
+printinventoryammo1 :- ammoweapon(peluruak47, X), (X > 0), write(peluruak47), nl,!;
+					   1==1.
+printinventoryammo2 :- ammoweapon(pelurupistol, X), (X > 0), write(pelurupistol), nl,!;
+					   1==1.
+printinventoryammo3 :- ammoweapon(peluruwatergun, X), (X > 0), write(peluruwatergun), nl,!;
+					   1==1.
 
 /*player status*/
 status :- health(H), write('Health: '), write(H), nl,
