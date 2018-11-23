@@ -46,10 +46,7 @@ start :-
     asserta(weapon(none)),
 	asserta(inventory([])),
 	asserta(ammo(0)),
-	asserta(ammoweapon(pelurupistol, 0)),
-	asserta(ammoweapon(peluruak47, 0)),
-	asserta(ammoweapon(peluruwatergun, 0)),
-	spawnenemies, spawnammo, spawnarmor, spawnweapon, spawnmedicine, armorinit, weaponinit, !,
+	spawnenemies, spawnammo, spawnarmor, spawnweapon, spawnmedicine, armorinit, weaponinit, ammoinit, !,
 	write('======================================================='), nl,
 	write('=                         _             _             ='), nl,
 	write('=                        | |           ( )            ='), nl,
@@ -157,6 +154,12 @@ printwalk :-
 		gameover;
 		1 == 1
 	),
+	(
+		enemyposition(_,X, Y),
+		write('An enemy on your vicinity spots you, commencing a duel!'), nl,
+		attack;
+		1 == 1
+	),
 	printlocation(X, Y),
 	(
 		(Xn is X-1, (
@@ -194,14 +197,24 @@ printsurrounding(X, Y) :-
 	Startpy is Py - 1,
 	(
 		(Y == Endpy, !, Next_X is X + 1, printsurrounding(Next_X, Startpy));
+		(X == Px, Y == Py, !, 
+			(
+				((enemyposition(Id,X,Y), write('You spot an enemy, #'), write(Id), write(', right in front of you.'), nl, !); 1 == 1),
+				((medicineposition(Med,X,Y), write('There is a medicine, '), write(Med), write(', right below you. '), nl, !); 1 == 1),
+				((weaponposition(Wea,X,Y), write('A weapon, '), write(Wea), write(', lies right below you. '), nl, !); 1 == 1),
+				((armorposition(Arm,X,Y), write('You see an armor, '), write(Arm), write(', right below you. '), nl, !); 1 == 1),
+				((ammoposition(Amm,X,Y), write('Magazines, '), write(Amm), write(', are right below you. '), nl, !); 1 == 1)
+			), Next_Y is Y + 1, !, printsurrounding(X, Next_Y)
+		);
 		(X < Endpx, !,
-		(
-			((enemyposition(_,X,Y), write('You spot an enemy hiding nearby. '), !); 1 == 1),
-			((medicineposition(_,X,Y), write('There is a medicine on the ground. '), !); 1 == 1),
-			((weaponposition(_,X,Y), write('A weapon lies near you. '), !); 1 == 1),
-			((armorposition(_,X,Y), write('You see an armor. '), !); 1 == 1)
-		),
-		Next_Y is Y + 1, printsurrounding(X, Next_Y));
+			(
+				((enemyposition(Id,X,Y), write('You spot an enemy, #'), write(Id), write(', hiding nearby.'), nl, !); 1 == 1),
+				((medicineposition(Med,X,Y), write('There is a medicine, '), write(Med), write(', on the ground. '), nl, !); 1 == 1),
+				((weaponposition(Wea,X,Y), write('A weapon, '), write(Wea), write(', lies near you. '), nl, !); 1 == 1),
+				((armorposition(Arm,X,Y), write('You see an armor, '), write(Arm), write('. '), nl, !); 1 == 1),
+				((ammoposition(Amm,X,Y), write('Magazines, '), write(Amm), write(', are seen. '), nl, !); 1 == 1)
+			), Next_Y is Y + 1, !, printsurrounding(X, Next_Y)
+		);
 		X == Endpx
 	).
 	
@@ -226,6 +239,7 @@ printlook(X, Y) :-
 			(medicineposition(_,X,Y), write('M'), !);
 			(weaponposition(_,X,Y), write('W'), !);
 			(armorposition(_,X,Y), write('A'),!);
+			(ammoposition(_,X,Y), write('O'),!);
 			(playerposition(X, Y), write('P'), !); 
 			
 			write('_')
@@ -271,6 +285,11 @@ spawnammo :-
 	asserta(ammoposition(pelurupistol, 2,4)),
 	asserta(ammoposition(peluruak47, 4,6)),
 	asserta(ammoposition(peluruwatergun, 5,6)).
+	
+ammoinit :-
+	asserta(ammoweapon(pelurupistol, 0)),
+	asserta(ammoweapon(peluruak47, 0)),
+	asserta(ammoweapon(peluruwatergun, 0)).
 
 spawnmedicine :- 
     asserta(medicineposition(bandage, 3, 7)),
@@ -297,12 +316,8 @@ cekstamina :- stamina(N), N>=10.
 isiinventory([], 0).
 isiinventory([H|T], X) :- isiinventory(T, Y), X is (Y + 1). 
 
-printinventory([]) :- nl.
-printinventory([H|[]]) :- write(H), nl. 
-printinventory([H|T]) :- write(H), write(', '), printinventory(T).
-
-printisiinventory([]) :- write('Your inventory is empty!'), nl. 
-printisiinventory([H|T]) :- printinventory([H|T]).
+printinventory([]).
+printinventory([H|T]) :- write(H), nl, printinventory(T).
 
 isada(Object, []) :- false.
 isada(Object, [H|T]) :- (Object == H), !.
@@ -329,16 +344,21 @@ addammo(Ammo, X, Y) :- (Ammo == pelurupistol), retract(ammoweapon(pelurupistol, 
 addammo(Ammo, X, Y) :- (Ammo == peluruak47), retract(ammoweapon(peluruak47, P)), YY is P + 1, asserta(ammoweapon(Ammo, YY)), !.
 addammo(Ammo, X, Y) :- (Ammo == peluruwatergun), retract(ammoweapon(peluruwatergun, P)), P is Y+5, asserta(ammoweapon(Ammo, YY)), !. 
 
+printstatusinventory(I) :- isiinventory(I,X), (X == 0), jumlahammo(Y), (Y == 0), write('Your inventory is empty!'), nl, !.
+printstatusinventory(I) :- isiinventory(I,XX), (XX > 0), jumlahammo(YY), (YY == 0), printinventory(I), !.
+printstatusinventory(I) :- isiinventory(I,XXX), (XXX > 0), jumlahammo(YYY), (YYY > 0), printinventory(I), printinventoryammo, !.
 
-
+printinventoryammo :- ammoweapon(peluruak47, X), (X > 0), write(peluruak47), nl, !,
+					  ammoweapon(pelurupistol, X), (X > 0), write(pelurupistol), nl, !,
+					  ammoweapon(peluruwatergun, X), (X > 0), write(peluruwatergun), nl, !.
 /*player status*/
-
 status :- health(H), write('Health: '), write(H), nl,
 		  stamina(S), write('Stamina: '), write(S), nl, 
 		  armor(Ar), write('Armor: '), write(Ar), nl, 
 		  weapon(W), write('Weapon: '), write(W), nl, 
-		  ammo(Ammo), write('Ammo: '), write(Am), nl, 
-		inventory(Inventory), write('Inventory: '), printisiinventory(Inventory), nl, !.
+		  ammo(Ammo), write('Ammo: '), write(Ammo), nl, 
+		  inventory(Inventory), write('Inventory: '),  printstatusinventory(Inventory), !.
+
 
 /*classify an object */
 isweapon(X) :- (X == pistol);(X == watergun);(X == sword);(X == ak47).
@@ -369,20 +389,20 @@ use(X) :- isexist(X), (X == hat), retract(armor(Armor)), asserta(armor(Armor+5))
 use(X) :- isexist(X), (X == vest), retract(armor(Armor)), asserta(armor(Armor+10)), removeobject(X), write('Your Armor is increasing 10 units!'), nl, !.
 use(X) :- isexist(X), (X == helmet), retract(armor(Armor)), asserta(armor(Armor+15)), removeobject(X), write('Your Armor is increasing 15 units!'), nl, !.
 use(X) :- isexist(X), (X == kopyah), retract(armor(Armor)), asserta(armor(Armor+20)), removeobject(X), write('Your Armor is increasing 20 units!'), nl, !.
-use(X) :- (X == peluruak47), weapon(W), W == ak47, ammoweapon(peluruak47, P), ammo(Now), Q is 3 - Now, mini(P, Q, Mini), 
+use(X) :- (X == peluruak47), weapon(W), W == ak47, ammoweapon(peluruak47, P), retract(ammo(Now)), Q is 3 - Now, mini(P, Q, Mini), 
 			Np is P - Mini, asserta(ammoweapon(peluruak47,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
 			write('ak47 '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
-use(X) :- (X == pelurupistol), weapon(W), W == pistol, ammoweapon(pelurupistol, P), ammo(Now), Q is 7 - Now, mini(P, Q, Mini), 
+use(X) :- (X == pelurupistol), weapon(W), W == pistol, ammoweapon(pelurupistol, P), retract(ammo(Now)), Q is 7 - Now, mini(P, Q, Mini), 
 			Np is P - Mini, asserta(ammoweapon(peluruapistol,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
 			write('pistol '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
-use(X) :- (X == peluruwatergun), weapon(W), W == watergun, ammoweapon(peluruwatergun, P), ammo(Now), Q is 10 - Now, mini(P, Q, Mini), 
+use(X) :- (X == peluruwatergun), weapon(W), W == watergun, ammoweapon(peluruwatergun, P), retract(ammo(Now)), Q is 10 - Now, mini(P, Q, Mini), 
 			Np is P - Mini, asserta(ammoweapon(peluruwatergun,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
 			write('watergun '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
 
 changeweapon(X) :- (X \== none), retract(inventory(Inventory)), isiinventory(Inventory, Frek), (Frek < 10), 
-					append([X], Inventory, TY), asserta(inventory(TY)), asserta(ammo(0)), 
+					append([X], Inventory, TY), asserta(inventory(TY)), retract(ammo(_)), asserta(ammo(0)), 
 					((X \== sword, write('But the guns empty, cuy.'), nl);(X == sword, nl)), !.
-changeweapon(X) :- retract(inventory(Inventory)), asserta(inventory(Inventory)),asserta(ammo(0)),
+changeweapon(X) :- retract(inventory(Inventory)), asserta(inventory(Inventory)), retract(ammo(_)), asserta(ammo(0)),
 					((X \== sword, write('But the guns empty, cuy.'), nl);(X == sword, nl)), !.
 
 mini(X, Y, Z) :- (X < Y, Z is X), !.
