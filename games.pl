@@ -18,23 +18,31 @@
 :- dynamic(armorlist/2).
 :- dynamic(ammoweapon/2).
 :- dynamic(weaponlist/2).
+:- dynamic(enemiesleft/1).
 
 inc :-
 	retract(step(X)),
 	Next_X is X+1,
-	asserta(step(Next_X)).
-
+	asserta(step(Next_X)),
+	enemydeadzone(1).
+	
+enemydeadzone(Id) :-
+	(enemyposition(Id, X, Y), deadzone(X, Y), retract(enemyposition(Id, X, Y)), !; 1 == 1),
+	Next_Id is Id + 1, enemycount(Enemy_count),
+	(Next_Id =< Enemy_count, enemydeadzone(Next_Id), !; 1 == 1).
+	
 /*Enemies stuffs*/
 spawnenemies :-
 	asserta(enemyposition(1,2,3)),
 	asserta(enemyweapon(1,ak47)),
 	asserta(enemyposition(2,5,8)),
 	asserta(enemyweapon(2,ak47)),
-	asserta(enemyposition(3,9,1)),
+	asserta(enemyposition(3,9,4)),
 	asserta(enemyweapon(3,ak47)),
 	asserta(enemyposition(4,4,5)),
 	asserta(enemyweapon(4,ak47)),
-	asserta(enemycount(4)).
+	asserta(enemycount(4)),
+	asserta(enemiesleft(4)).
 
 /*start games */
 start :-
@@ -76,7 +84,7 @@ start :-
 	write('    take(Object). -- pick up an object             '), nl,
 	write('    drop(Object). -- drop an object                '), nl,
 	write('    use(Object). -- use an object                  '), nl,
-	write('    attack. -- attack enemy that crosses your path '), nl,
+	write('    attack. -- attack enemy on your vicinity       '), nl,
 	write('    status. -- show your status                    '), nl,
 	write('    save(Filename). -- save your game              '), nl,
 	write('    load(Filename). -- load previously saved game  '), nl,
@@ -117,20 +125,38 @@ printmap(X, Y) :-
 
 /*rest for players*/
 rest :-
-	inc, enemywalk(1), retract(stamina(Prev)), Now is Prev+20, asserta(stamina(Now)), restmax.
+	inc, enemywalk(1), retract(stamina(Prev)), Now is Prev+20, asserta(stamina(Now)), restmax,
+	write('You rest for a while, increasing your stamina by 10.'), nl,
+	(
+		playerposition(X, Y),
+		deadzone(X, Y),
+		write('Alas, sometimes "a while" means forever. A helicopter comes to your vicinity.'), nl,
+		write('"A Warrior attempts trespassing," a voice shouted.'), nl, nl,
+		write('BANG! You have been shot.'), nl,
+		write('Blood gushing through your veins, you are now sleeping so soundly...'), nl, nl,
+		gameover, !;
+		1 == 1
+	),
+	(
+		enemyposition(_,X, Y),
+		write('Unknowingly, an enemy ambushes you from behind, commencing a duel!'), nl,
+		doattack(X, Y), !;
+		1 == 1
+	).
 restmax :-
 	(stamina(Now), Now > 100, !, retract(stamina(Now)), asserta(stamina(100)));
 	stamina(_).	
 enemywalk(Id) :-
-	enemycount(N), ((Id =< N, !, retract(enemyposition(Id,X,Y)), playerposition(Xp,Yp),
+	enemycount(N), Id > N, !;
+	\+ enemyposition(Id,_,_), NextId is Id + 1, enemywalk(NextId), !;
+	enemycount(N), Id =< N, !, retract(enemyposition(Id,X,Y)), playerposition(Xp,Yp),
 		(
 			X > Xp, !, X1 is X - 1, asserta(enemyposition(Id,X1,Y));
 			X < Xp, !, X1 is X + 1, asserta(enemyposition(Id,X1,Y));
 			Y > Yp, !, Y1 is Y - 1, asserta(enemyposition(Id,X,Y1));
 			Y < Yp, !, Y1 is Y + 1, asserta(enemyposition(Id,X,Y1));
 			asserta(enemyposition(Id,X,Y))
-		), NextId is Id + 1, enemywalk(NextId)
-	); Id > N).
+		), NextId is Id + 1, enemywalk(NextId).
 
 printlocation(X, Y) :-
 	write('You are currently in '),
@@ -151,13 +177,13 @@ printwalk :-
 		write('"A Warrior attempts trespassing," a voice shouted.'), nl, nl,
 		write('BANG! You have been shot.'), nl,
 		write('Blood gushing through your veins, you are now sleeping so soundly...'), nl, nl,
-		gameover;
+		gameover, !;
 		1 == 1
 	),
 	(
 		enemyposition(_,X, Y),
 		write('An enemy on your vicinity spots you, commencing a duel!'), nl,
-		attack;
+		doattack(X, Y), !;
 		1 == 1
 	),
 	printlocation(X, Y),
@@ -208,7 +234,7 @@ printsurrounding(X, Y) :-
 		);
 		(X < Endpx, !,
 			(
-				((enemyposition(Id,X,Y), write('You spot an enemy, #'), write(Id), write(', hiding nearby.'), nl, !); 1 == 1),
+				((enemyposition(Id,X,Y), write('An enemy, #'), write(Id), write(', is on your vicinity.'), nl, !); 1 == 1),
 				((medicineposition(Med,X,Y), write('There is a medicine, '), write(Med), write(', on the ground. '), nl, !); 1 == 1),
 				((weaponposition(Wea,X,Y), write('A weapon, '), write(Wea), write(', lies near you. '), nl, !); 1 == 1),
 				((armorposition(Arm,X,Y), write('You see an armor, '), write(Arm), write('. '), nl, !); 1 == 1),
@@ -425,16 +451,33 @@ drop(X) :- write('You dont have the '), write(X), write(' item'), nl, !.
 
 gameover :-
 	write('GAME OVER!'), nl, 
-	write('Enemies left: '), enemycount(X), write(X), nl,
+	write('Enemies left: '), enemiesleft(X), write(X), nl,
 	halt.
 
 /* Attack */
 attack :-
-	playerposition(Xp,Yp), enemyposition(Id,Xp,Yp),
+	playerposition(X, Y),
+	Startpx is X-1,
+	Startpy is Y-1,
+	loopattack(Startpx, Startpy).
+attack :- write('There is no enemy at sight. Keep going!').
+
+loopattack(X, Y) :-
+	playerposition(Px, Py),
+	Endpy is Py + 2,
+	Endpx is Px + 2,
+	Startpy is Py - 1,
+	(
+		Y == Endpy, !, Next_X is X + 1, loopattack(Next_X, Startpy);
+		X < Endpx, !, (doattack(X, Y); Next_Y is Y + 1, loopattack(X, Next_Y));
+		X == Endpx, !, fail
+	).
+
+doattack(Xp, Yp) :-
+	enemyposition(Id,Xp,Yp),
 	!, weapon(Wp), enemyweapon(Id, We),
 	retract(health(Hp)), armor(Ap), Htotal is Hp + Ap, asserta(health(Htotal)),
 	playerattack(Wp,We,100).
-attack :- write('There is no enemy at sight. Keep going!').
 
 playerattack(Wp,We,He) :- ammo(A), A == 0, !, enemyattack(Wp,We,He).
 playerattack(Wp,We,He) :-
@@ -445,6 +488,7 @@ playerattack(Wp,We,He) :-
 	(
 		Heleft > 0, !, write('The battle continues!'), nl, enemyattack(Wp,We,Heleft);
 		write('The enemy is dead, blood gushing through his veins.'), nl,
+		retract(enemiesleft(Left)), Next_Left is Left - 1, asserta(enemiesleft(Next_Left)),
 		retract(health(Htotal)),
 		(
 			Htotal > 100, !, assert(health(100)), Atotal is Htotal - 100, retract(armor(_)), assert(armor(Atotal));
