@@ -125,16 +125,68 @@ enemywalk(Id) :-
 		Y > Yp, !, Y1 is Y - 1, asserta(enemyposition(Id,X,Y1)), NextId is Id + 1, enemywalk(NextId);
 		Y < Yp, !, Y1 is Y + 1, asserta(enemyposition(Id,X,Y1)), NextId is Id + 1, enemywalk(NextId)).
 
+printlocation(X, Y) :-
+	write('You are currently in '),
+	(
+		(X =< 8, Y =< 8, write('Ahrisa'), !);
+		(X =< 8, Y > 8, write('Mhayakidz'), !);
+		(X > 8, Y =< 8, write('Fmmichflu'), !);
+		(X > 8, Y > 8, write('Ispatur'), !)
+		/* Yes, those are our names. :) */
+	),
+	write('.'), nl.
 
+printwalk :-
+	playerposition(X, Y),
+	printlocation(X, Y),
+	(
+		(Xn is X-1, (
+			(deadzone(Xn, Y), write('To the north is the deadzone. '), !);
+			(write('To the north is an open field. ')))
+		),
+		(Yn is Y+1, (
+			(deadzone(X, Yn), write('To the east is the deadzone. '), !);
+			(write('To the east is an open field. ')))
+		),
+		nl, (Xnp is X+1, (
+			(deadzone(Xnp, Y), write('To the south is the deadzone. '), !);
+			(write('To the south is an open field. ')))
+		),
+		(Ynp is Y-1, (
+			(deadzone(X, Ynp), write('To the west is the deadzone. '), !);
+			(write('To the west is an open field. ')))
+		)
+	).
+	
+surrounding :-
+	playerposition(X, Y),
+	printlocation(X, Y),
+	Startpx is X-1,
+	Startpy is Y-1,
+	printsurrounding(Startpx, Startpy),
+	nl.
+
+printsurrounding(X, Y) :-
+	playerposition(Px, Py),
+	Endpy is Py + 2,
+	Endpx is Px + 2,
+	Startpy is Py - 1,
+	(
+		(Y == Endpy, !, Next_X is X + 1, printsurrounding(Next_X, Startpy));
+		(X < Endpx, !,
+		(
+			((enemyposition(Id,X,Y), write('You spot an enemy hiding nearby. '), !); 1 == 1),
+			((medicineposition(Id,X,Y), write('There is a medicine on the ground. '), !); 1 == 1),
+			((weaponposition(Id,X,Y), write('A weapon lies near you. '), !); 1 == 1),
+			((armorposition(_,X,Y), write('You see an armor. '), !); 1 == 1)
+		),
+		Next_Y is Y + 1, printsurrounding(X, Next_Y));
+		X == Endpx
+	).
+	
 look :-
 	playerposition(X, Y),
-	(
-		(enemyposition(Id,X,Y), write('In your position, There is Enemy'), nl, !);
-		(medicineposition(Id,X,Y), write('In your position, There is '), write(Id), nl, !);
-		(weaponposition(Id,X,Y), write('In your position, There is '), write(Id), nl, !);
-		(armorposition(_,X,Y), write('In your position, There is '), write(Id), nl, !);
-		(playerposition(X,Y))
-	),
+	surrounding,
 	Startpx is X-1,
 	Startpy is Y-1,
 	printlook(Startpx, Startpy).
@@ -205,10 +257,10 @@ spawnmedicine :-
     asserta(medicineposition(bandage, 20, 10)).	
 
 /*temporary rules */
-w :- inc, retract(playerposition(X, Y)), Next_y is Y-1, asserta(playerposition(X, Next_y)).
-s :- inc, retract(playerposition(X, Y)), Next_x is X+1, asserta(playerposition(Next_x, Y)).
-e :- inc, retract(playerposition(X, Y)), Next_y is Y+1, asserta(playerposition(X, Next_y)).
-n :- inc, retract(playerposition(X, Y)), Next_x is X-1, asserta(playerposition(Next_x, Y)).
+w :- inc, retract(playerposition(X, Y)), Next_y is Y-1, asserta(playerposition(X, Next_y)), printwalk.
+s :- inc, retract(playerposition(X, Y)), Next_x is X+1, asserta(playerposition(Next_x, Y)), printwalk.
+e :- inc, retract(playerposition(X, Y)), Next_y is Y+1, asserta(playerposition(X, Next_y)), printwalk.
+n :- inc, retract(playerposition(X, Y)), Next_x is X-1, asserta(playerposition(Next_x, Y)), printwalk.
 
 
 /*inventory rules */
