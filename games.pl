@@ -324,7 +324,7 @@ playerattack(Wp,We,He) :- ammo(A), A == 0, !, enemyattack(Wp,We,He).
 playerattack(Wp,We,He) :- retract(ammo(A)), Aleft is A - 1, asserta(ammo(Aleft)), weaponlist(Wp,Dp), Heleft is He - Dp, write('Enemy attacked by '), write(Wp), write(' ,Enemy Health now is '), write(Heleft), write('. Battle still continue !'), nl, enemyattack(Wp,We,Heleft).
 
 enemyattack(Wp,We,He) :- He =< 0, !, write('You WIN').
-enemyattack(Wp,We,He) :-   write(We), retract(health(Hp)), write(We), weaponlist(We,De), Hpleft is Hp - De, asserta(health(Hpleft)), write('You are attacked by '), write(Wp), write(' ,Your Health now is '), write(Hpleft), write('. Battle still continue !'), nl, playerattack(Wp,We,He).
+enemyattack(Wp,We,He) :-   write(We), retract(health(Hp)), write(We), weaponlist(We,De), Hpleft is Hp - De, asserta(health(Hpleft)), Hpleft >= 0, !, write('You are attacked by '), write(Wp), write(' ,Your Health now is '), write(Hpleft), write('. Battle still continue !'), nl, playerattack(Wp,We,He).
 
 /* File's */
 save(Filename):-
