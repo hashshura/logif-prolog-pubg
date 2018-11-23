@@ -43,7 +43,7 @@ start :-
 	asserta(step(0)),
 	asserta(health(100)),
 	asserta(playerposition(2,2)),
-	asserta(stamina(100)),
+	asserta(stamina(85)),
 	asserta(armor(0)),
     asserta(weapon('none')),
 	asserta(inventory([])),
@@ -119,15 +119,20 @@ printmap(X, Y) :-
 
 /*rest for players*/
 rest :-
-	inc, enemywalk(1), retract(stamina(Prev)), Now is Prev + 10, Now > 100, !, asserta(stamina(100));
-	asserta(stamina(Now)).
-	
+	inc, enemywalk(1), retract(stamina(Prev)), Now is Prev+10, asserta(stamina(Now)), restmax.
+restmax :-
+	(stamina(Now), Now > 100, !, retract(stamina(Now)), asserta(stamina(100)));
+	stamina(_).	
 enemywalk(Id) :-
-	enemycount(N), Id =< N, retract(enemyposition(Id,X,Y)), playerposition(Xp,Yp),
-		(X > Xp, !, X1 is X - 1, asserta(enemyposition(Id,X1,Y)), NextId is Id + 1, enemywalk(NextId);
-		X < Xp, !, X1 is X + 1, asserta(enemyposition(Id,X1,Y)), NextId is Id + 1, enemywalk(NextId);
-		Y > Yp, !, Y1 is Y - 1, asserta(enemyposition(Id,X,Y1)), NextId is Id + 1, enemywalk(NextId);
-		Y < Yp, !, Y1 is Y + 1, asserta(enemyposition(Id,X,Y1)), NextId is Id + 1, enemywalk(NextId)).
+	enemycount(N), ((Id =< N, !, retract(enemyposition(Id,X,Y)), playerposition(Xp,Yp),
+		(
+			X > Xp, !, X1 is X - 1, asserta(enemyposition(Id,X1,Y));
+			X < Xp, !, X1 is X + 1, asserta(enemyposition(Id,X1,Y));
+			Y > Yp, !, Y1 is Y - 1, asserta(enemyposition(Id,X,Y1));
+			Y < Yp, !, Y1 is Y + 1, asserta(enemyposition(Id,X,Y1));
+			asserta(enemyposition(Id,X,Y))
+		), NextId is Id + 1, enemywalk(NextId)
+	); Id > N).
 
 
 look :-
@@ -263,6 +268,7 @@ addmedicine(Medicine, X, Y) :- (Medicine == 'bandage'), retract(health(H)), (H +
 
 /*player status*/
 status :- retract(health(Health)), write('Health: '), H is Health, write(H), nl, asserta(health(H)),
+		retract(stamina(Stamina)), write('Stamina: '), S is Stamina, write(S), nl, asserta(stamina(S)),
 		retract(armor(Armor)), write('Armor: '), A is Armor, write(A), nl, asserta(armor(A)), 
 		retract(weapon(Weapon)), write('Weapon: '), write(Weapon), nl, asserta(weapon(Weapon)),
 		retract(ammo(Ammo)), write('Ammo: '), Am is Ammo, write(Am), nl, asserta(ammo(Am)),
