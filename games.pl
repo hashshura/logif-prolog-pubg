@@ -381,18 +381,43 @@ drop(X) :- isexist(X), isweapon(X), removeobject(X), retract(playerposition(PX, 
 			asserta(weaponposition(X, PX, PY)), !.
 drop(X) :- write('You dont have the '), write(X), write(' item'), nl, !.
 
-gameover :- write('GAME OVER'),nl,write('Sisa musuh sekarang adalah : '),enemycount(X),write(X),nl.
+gameover :-
+	write('GAME OVER!'), nl, 
+	write('Enemies left: '), enemycount(X), write(X), nl,
+	halt.
 
 /* Attack */
-attack :- playerposition(Xp,Yp), enemyposition(Id,Xp,Yp), !, enemyweapon(Id, We), weapon(Wp), retract(health(Hp)), armor(Ap), ammo(Ammo), Htotal is Hp + Ap, asserta(health(Htotal)), playerattack(Wp,We,100).
-attack :- write('There is not enemy in your position LOL').
+attack :-
+	playerposition(Xp,Yp), enemyposition(Id,Xp,Yp),
+	!, weapon(Wp), enemyweapon(Id, We),
+	retract(health(Hp)), armor(Ap), Htotal is Hp + Ap, asserta(health(Htotal)),
+	playerattack(Wp,We,100).
+attack :- write('There is no enemy at sight. Keep going!').
 
-playerattack(Wp,We,He) :- health(Hp), Hp =< 0, !, write('You LOSE').
 playerattack(Wp,We,He) :- ammo(A), A == 0, !, enemyattack(Wp,We,He).
-playerattack(Wp,We,He) :- retract(ammo(A)), Aleft is A - 1, asserta(ammo(Aleft)), weaponlist(Wp,Dp), Heleft is He - Dp, write('Enemy attacked by '), write(Wp), write(' ,Enemy Health now is '), write(Heleft), write('. Battle still continue !'), nl, enemyattack(Wp,We,Heleft).
+playerattack(Wp,We,He) :-
+	retract(ammo(A)), Aleft is A - 1, asserta(ammo(Aleft)),
+	weaponlist(Wp,Dp), Heleft is He - Dp,
+	write('You attack the enemy with your '), write(Wp), write('.'), nl,
+	write('His health point has been reduced to '), write(Heleft), write('.'), nl,
+	(
+		Heleft > 0, !, write('The battle continues!'), nl, enemyattack(Wp,We,Heleft);
+		write('The enemy is dead, blood gushing through his veins.'), nl,
+		retract(health(Htotal)),
+		(
+			Htotal > 100, !, assert(health(100)), Atotal is Htotal - 100, retract(armor(_)), assert(armor(Atotal));
+			assert(health(Htotal))
+		)
+	).
 
-enemyattack(Wp,We,He) :- He =< 0, !, write('You WIN').
-enemyattack(Wp,We,He) :-   write(We), retract(health(Hp)), write(We), weaponlist(We,De), Hpleft is Hp - De, asserta(health(Hpleft)), Hpleft >= 0, !, write('You are attacked by '), write(Wp), write(' ,Your Health now is '), write(Hpleft), write('. Battle still continue !'), nl, playerattack(Wp,We,He).
+enemyattack(Wp,We,He) :-
+	retract(health(Hp)), weaponlist(We,De), Hpleft is Hp - De, asserta(health(Hpleft)),
+	write('The enemy sneaks from behind and hits you using '), write(We), write('.'), nl,
+	write('. The attack reduces your health point to '), write(Hpleft), write('.'), nl,
+	(
+		Hpleft > 0, !, write('The battle continues!'), nl, playerattack(Wp,We,He);
+		write('You are dead, the world fades black...'), nl, gameover
+	).
 
 /* File's */
 save(Filename):-
