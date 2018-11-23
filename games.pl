@@ -125,7 +125,24 @@ printmap(X, Y) :-
 
 /*rest for players*/
 rest :-
-	inc, enemywalk(1), retract(stamina(Prev)), Now is Prev+20, asserta(stamina(Now)), restmax.
+	inc, enemywalk(1), retract(stamina(Prev)), Now is Prev+20, asserta(stamina(Now)), restmax,
+	write('You rest for a while, increasing your stamina by 10.'), nl,
+	(
+		playerposition(X, Y),
+		deadzone(X, Y),
+		write('Alas, sometimes "a while" means forever. A helicopter comes to your vicinity.'), nl,
+		write('"A Warrior attempts trespassing," a voice shouted.'), nl, nl,
+		write('BANG! You have been shot.'), nl,
+		write('Blood gushing through your veins, you are now sleeping so soundly...'), nl, nl,
+		gameover, !;
+		1 == 1
+	),
+	(
+		enemyposition(_,X, Y),
+		write('Unknowingly, an enemy ambushes you from behind, commencing a duel!'), nl,
+		doattack(X, Y), !;
+		1 == 1
+	).
 restmax :-
 	(stamina(Now), Now > 100, !, retract(stamina(Now)), asserta(stamina(100)));
 	stamina(_).	
@@ -160,13 +177,13 @@ printwalk :-
 		write('"A Warrior attempts trespassing," a voice shouted.'), nl, nl,
 		write('BANG! You have been shot.'), nl,
 		write('Blood gushing through your veins, you are now sleeping so soundly...'), nl, nl,
-		gameover;
+		gameover, !;
 		1 == 1
 	),
 	(
 		enemyposition(_,X, Y),
 		write('An enemy on your vicinity spots you, commencing a duel!'), nl,
-		doattack(X, Y);
+		doattack(X, Y), !;
 		1 == 1
 	),
 	printlocation(X, Y),
