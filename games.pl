@@ -423,8 +423,8 @@ playerattack(Wp,We,He) :-
 		write('The enemy is dead, blood gushing through his veins.'), nl,
 		retract(health(Htotal)),
 		(
-			Htotal > 100, !, assert(health(100)), Atotal is Htotal - 100, retract(armor(_)), assert(armor(Atotal));
-			assert(health(Htotal))
+			Htotal > 100, !, asserta(health(100)), Atotal is Htotal - 100, retract(armor(_)), asserta(armor(Atotal));
+			asserta(health(Htotal))
 		)
 	).
 
