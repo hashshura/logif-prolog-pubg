@@ -23,7 +23,7 @@ inc :-
 	retract(step(X)),
 	Next_X is X+1,
 	asserta(step(Next_X)).
-
+	
 /*Enemies stuffs*/
 spawnenemies :-
 	asserta(enemyposition(1,2,3)),
@@ -76,7 +76,7 @@ start :-
 	write('    take(Object). -- pick up an object             '), nl,
 	write('    drop(Object). -- drop an object                '), nl,
 	write('    use(Object). -- use an object                  '), nl,
-	write('    attack. -- attack enemy that crosses your path '), nl,
+	write('    attack. -- attack enemy on your vicinity       '), nl,
 	write('    status. -- show your status                    '), nl,
 	write('    save(Filename). -- save your game              '), nl,
 	write('    load(Filename). -- load previously saved game  '), nl,
@@ -157,7 +157,7 @@ printwalk :-
 	(
 		enemyposition(_,X, Y),
 		write('An enemy on your vicinity spots you, commencing a duel!'), nl,
-		attack;
+		doattack(X, Y);
 		1 == 1
 	),
 	printlocation(X, Y),
@@ -208,7 +208,7 @@ printsurrounding(X, Y) :-
 		);
 		(X < Endpx, !,
 			(
-				((enemyposition(Id,X,Y), write('You spot an enemy, #'), write(Id), write(', hiding nearby.'), nl, !); 1 == 1),
+				((enemyposition(Id,X,Y), write('An enemy, #'), write(Id), write(', is on your vicinity.'), nl, !); 1 == 1),
 				((medicineposition(Med,X,Y), write('There is a medicine, '), write(Med), write(', on the ground. '), nl, !); 1 == 1),
 				((weaponposition(Wea,X,Y), write('A weapon, '), write(Wea), write(', lies near you. '), nl, !); 1 == 1),
 				((armorposition(Arm,X,Y), write('You see an armor, '), write(Arm), write('. '), nl, !); 1 == 1),
@@ -425,11 +425,28 @@ gameover :-
 
 /* Attack */
 attack :-
-	playerposition(Xp,Yp), enemyposition(Id,Xp,Yp),
+	playerposition(X, Y),
+	Startpx is X-1,
+	Startpy is Y-1,
+	loopattack(Startpx, Startpy).
+attack :- write('There is no enemy at sight. Keep going!').
+
+loopattack(X, Y) :-
+	playerposition(Px, Py),
+	Endpy is Py + 2,
+	Endpx is Px + 2,
+	Startpy is Py - 1,
+	(
+		Y == Endpy, !, Next_X is X + 1, loopattack(Next_X, Startpy);
+		X < Endpx, !, (doattack(X, Y); Next_Y is Y + 1, loopattack(X, Next_Y));
+		X == Endpx, !, fail
+	).
+
+doattack(Xp, Yp) :-
+	enemyposition(Id,Xp,Yp),
 	!, weapon(Wp), enemyweapon(Id, We),
 	retract(health(Hp)), armor(Ap), Htotal is Hp + Ap, asserta(health(Htotal)),
 	playerattack(Wp,We,100).
-attack :- write('There is no enemy at sight. Keep going!').
 
 playerattack(Wp,We,He) :- ammo(A), A == 0, !, enemyattack(Wp,We,He).
 playerattack(Wp,We,He) :-
