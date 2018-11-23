@@ -22,7 +22,13 @@
 inc :-
 	retract(step(X)),
 	Next_X is X+1,
-	asserta(step(Next_X)).
+	asserta(step(Next_X)),
+	enemydeadzone(1).
+	
+enemydeadzone(Id) :-
+	(enemyposition(Id, X, Y), deadzone(X, Y), retract(enemyposition(Id, X, Y)); 1 == 1),
+	Next_Id is Id + 1, enemycount(Enemy_count),
+	(Next_Id =< Enemy_count, enemydeadzone(Next_Id); 1 == 1).
 	
 /*Enemies stuffs*/
 spawnenemies :-
