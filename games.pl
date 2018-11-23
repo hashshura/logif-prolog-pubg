@@ -51,7 +51,7 @@ start :-
 	asserta(playerposition(2,2)),
 	asserta(stamina(100)),
 	asserta(armor(0)),
-    asserta(weapon('none')),
+    asserta(weapon(none)),
 	asserta(inventory([])),
 	asserta(ammo(0)),
 	spawnenemies, spawnammo, spawnarmor, spawnweapon, spawnmedicine, armorinit, weaponinit, ammoinit, !,
@@ -345,12 +345,8 @@ cekstamina :- stamina(N), N>=10.
 isiinventory([], 0).
 isiinventory([H|T], X) :- isiinventory(T, Y), X is (Y + 1). 
 
-printinventory([]) :- nl.
-printinventory([H|[]]) :- write(H), nl. 
-printinventory([H|T]) :- write(H), write(', '), printinventory(T).
-
-printisiinventory([]) :- write('Your inventory is empty!'), nl. 
-printisiinventory([H|T]) :- printinventory([H|T]).
+printinventory([]).
+printinventory([H|T]) :- write(H), nl, printinventory(T).
 
 isada(Object, []) :- false.
 isada(Object, [H|T]) :- (Object == H), !.
@@ -378,16 +374,22 @@ addammo(Ammo, X, Y) :- (Ammo == pelurupistol), retract(ammoweapon(pelurupistol, 
 addammo(Ammo, X, Y) :- (Ammo == peluruak47), retract(ammoweapon(peluruak47, P)), YY is P + 1, asserta(ammoweapon(Ammo, YY)), !.
 addammo(Ammo, X, Y) :- (Ammo == peluruwatergun), retract(ammoweapon(peluruwatergun, P)), YY is P+5, asserta(ammoweapon(Ammo, YY)), !. 
 
+printstatusinventory(I) :- isiinventory(I,X), (X == 0), jumlahammo(Y), (Y == 0), write('Your inventory is empty!'), nl, !.
+printstatusinventory(I) :- isiinventory(I,XX), (XX > 0), jumlahammo(YY), (YY == 0), printinventory(I), !.
+printstatusinventory(I) :- isiinventory(I,XXX), (XXX > 0), jumlahammo(YYY), (YYY > 0), printinventory(I), printinventoryammo, !.
 
+printinventoryammo :- ammoweapon(peluruak47, X), (X > 0), write(peluruak47), nl.
+printinventoryammo :- ammoweapon(pelurupistol, X), (X > 0), write(pelurupistol), nl.
+printinventoryammo :- ammoweapon(peluruwatergun, X), (X > 0), write(peluruwatergun), nl.
 
 /*player status*/
+status :- health(H), write('Health: '), write(H), nl,
+		  stamina(S), write('Stamina: '), write(S), nl, 
+		  armor(Ar), write('Armor: '), write(Ar), nl, 
+		  weapon(W), write('Weapon: '), write(W), nl, 
+		  ammo(Ammo), write('Ammo: '), write(Ammo), nl, 
+		  inventory(Inventory), write('Inventory: '), nl, printstatusinventory(Inventory), !.
 
-status :- retract(health(Health)), write('Health: '), H is Health, write(H), nl, asserta(health(H)),
-		retract(stamina(Stamina)), write('Stamina: '), S is Stamina, write(S), nl, asserta(stamina(S)),
-		retract(armor(Armor)), write('Armor: '), A is Armor, write(A), nl, asserta(armor(A)), 
-		retract(weapon(Weapon)), write('Weapon: '), write(Weapon), nl, asserta(weapon(Weapon)),
-		retract(ammo(Ammo)), write('Ammo: '), Am is Ammo, write(Am), nl, asserta(ammo(Am)),
-		retract(inventory(Inventory)), write('Inventory: '), printisiinventory(Inventory), asserta(inventory(Inventory)), !.
 
 /*classify an object */
 isweapon(X) :- (X == pistol);(X == watergun);(X == sword);(X == ak47).
@@ -425,21 +427,21 @@ use(X) :- isexist(X), (X == 'kopyah'), retract(armor(Armor)), asserta(armor(Armo
 use(X) :- (X == 'peluruak47'), weapon(W), W == 'ak47', ammoweapon(peluruak47, P), retract(ammo(Now)), Q is 3 - Now, mini(P, Q, Mini), 
 			Np is P - Mini, asserta(ammoweapon(peluruak47,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
 			write('ak47 '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
-use(X) :- (X == 'pelurupistol'), weapon(W), W == 'pistol', ammoweapon(pelurupistol, P), retract(ammo(Now)), Q is 7 - Now, mini(P, Q, Mini), 
+use(X) :- (X == pelurupistol), weapon(W), W == pistol, ammoweapon(pelurupistol, P), retract(ammo(Now)), Q is 7 - Now, mini(P, Q, Mini), 
 			Np is P - Mini, asserta(ammoweapon(peluruapistol,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
 			write('pistol '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
-use(X) :- (X == 'peluruwatergun'), weapon(W), W == 'watergun', ammoweapon(peluruwatergun, P), retract(ammo(Now)), Q is 10 - Now, mini(P, Q, Mini), 
+use(X) :- (X == peluruwatergun), weapon(W), W == watergun, ammoweapon(peluruwatergun, P), retract(ammo(Now)), Q is 10 - Now, mini(P, Q, Mini), 
 			Np is P - Mini, asserta(ammoweapon(peluruwatergun,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
 			write('watergun '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
 cekhealth(X) :- health(H), H>100, retract(health(H)), asserta(health(100)),write('Your health is maximum!'),nl,!;
 			    (X == bandage), write('Your Health is increasing 10 units!'), nl, !;
 			    (X == betadine), write('Your Health is increasing 15 units!'), nl.
 
-changeweapon(X) :- (X \== 'none'), retract(inventory(Inventory)), isiinventory(Inventory, Frek), (Frek < 10), 
+changeweapon(X) :- (X \== none), retract(inventory(Inventory)), isiinventory(Inventory, Frek), (Frek < 10), 
 					append([X], Inventory, TY), asserta(inventory(TY)), retract(ammo(_)), asserta(ammo(0)), 
-					((X \== 'sword', write('But the guns empty, cuy.'), nl);(X == 'sword', nl)), !.
+					((X \== sword, write('But the guns empty, cuy.'), nl);(X == sword, nl)), !.
 changeweapon(X) :- retract(inventory(Inventory)), asserta(inventory(Inventory)), retract(ammo(_)), asserta(ammo(0)),
-					((X \== 'sword', write('But the guns empty, cuy.'), nl);(X == 'sword', nl)), !.
+					((X \== sword, write('But the guns empty, cuy.'), nl);(X == sword, nl)), !.
 
 
 mini(X, Y, Z) :- (X < Y, Z is X), !.
