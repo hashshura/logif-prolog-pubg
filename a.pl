@@ -14,12 +14,13 @@
 :- dynamic(step/1).
 :- dynamic(ammo/1).
 
-
+/* inc step */
 inc :-
 	retract(step(X)),
 	Next_X is X+1,
 	asserta(step(Next_X)).
 
+/*start games */
 start :-
 	asserta(step(0)),
 	asserta(health(100)),
@@ -74,6 +75,7 @@ start :-
 	write('    X = inaccessible'), nl,
 	nl.
 
+/* map rules */
 deadzone(X, Y) :-
 	step(Steps),
 	Div is Steps // 5 + 1,
@@ -98,7 +100,6 @@ printmap(X, Y) :-
 		write(' '), Next_Y is Y + 1, printmap(X, Next_Y));
 	X == 21.
 	
-
 look :-
 	playerposition(X, Y),
 	Startpx is X-1,
@@ -123,35 +124,8 @@ printlook(X, Y) :-
 		X == Endpx
 	).
 
-/*temporary rules */
-w :- inc, retract(playerposition(X, Y)), Next_y is Y-1, asserta(playerposition(X, Next_y)).
-s :- inc, retract(playerposition(X, Y)), Next_x is X+1, asserta(playerposition(Next_x, Y)).
-e :- inc, retract(playerposition(X, Y)), Next_y is Y+1, asserta(playerposition(X, Next_y)).
-n :- inc, retract(playerposition(X, Y)), Next_x is X-1, asserta(playerposition(Next_x, Y)).
 
-deadzone(X, Y) :-
-	step(Steps),
-	Div is Steps // 5 + 1,
-	(
-	X =< Div, !;
-	Y =< Div, !;
-	Divl is 21 - Div, X >= Divl, !;
-	Divl is 21 - Div, Y >= Divl, !
-	).
-	
-map :-
-	printmap(1, 1).
-	
-printmap(X, Y) :-
-	(Y == 21, !, nl, Next_X is X + 1, printmap(Next_X, 1));
-	(X < 21, !, write(' '), (
-		(playerposition(X, Y), write('P'), !); 
-		(deadzone(X, Y), write('X'), !);
-		write('_')
-	), write(' '), Next_Y is Y + 1, printmap(X, Next_Y));
-	X == 21.
-
-/*for movement*/
+/*Additional rules */
 w :- inc, retract(playerposition(X, Y)), Next_y is Y-1, asserta(playerposition(X, Next_y)).
 s :- inc, retract(playerposition(X, Y)), Next_x is X+1, asserta(playerposition(Next_x, Y)).
 e :- inc, retract(playerposition(X, Y)), Next_y is Y+1, asserta(playerposition(X, Next_y)).
