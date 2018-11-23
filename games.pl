@@ -300,9 +300,18 @@ changeweapon(X) :- (X \== 'none'), retract(inventory(Inventory)), isiinventory(I
 					append([X], Inventory, TY), asserta(inventory(TY)), !.
 changeweapon(X) :- retract(inventory(Inventory)), asserta(inventory(Inventory)), !.
 
-use(X) :- isexist(X), (X == 'bandage'), retract(health(H)), asserta(health(H+10)), removeobject(X), write('Your Health is increasing 10 units!'), nl.
 % use(X) :- isexist(X), armorlist(X,Val),retract(armor(Armor)), ArmorNow is Armor + Val, asserta(armor(ArmorNow)), removeobject(X),write('Your Armor is increasing '),write(Val),write(' units!'), nl.
 
+/* drop an object from inventory */
+drop(X) :- isexist(X), isarmor(X), removeobject(X), retract(playerposition(PX, PY)), asserta(playerposition(PX, PY)), 
+			asserta(armorposition(X, PX, PY)), !.
+drop(X) :- isexist(X), ismedicine(X), removeobject(X), retract(playerposition(PX, PY)), asserta(playerposition(PX, PY)),
+			asserta(medicineposition(X, PX, PY)), !.
+drop(X) :- isexist(X), isweapon(X), removeobject(X), retract(playerposition(PX, PY)), asserta(playerposition(PX, PY)),
+			asserta(weaponposition(X, PX, PY)), !.
+drop(X) :- write('You dont have the '), write(X), write(' item'), nl, !.
+
+/* File's */
 save(Filename):-
 	/* Function to save file */
 	
