@@ -39,7 +39,7 @@ start :-
 	asserta(step(0)),
 	asserta(health(100)),
 	asserta(playerposition(2,2)),
-	asserta(stamina(85)),
+	asserta(stamina(100)),
 	asserta(armor(0)),
     asserta(weapon('none')),
 	asserta(inventory([])),
@@ -115,7 +115,7 @@ printmap(X, Y) :-
 
 /*rest for players*/
 rest :-
-	inc, enemywalk(1), retract(stamina(Prev)), Now is Prev+10, asserta(stamina(Now)), restmax.
+	inc, enemywalk(1), retract(stamina(Prev)), Now is Prev+20, asserta(stamina(Now)), restmax.
 restmax :-
 	(stamina(Now), Now > 100, !, retract(stamina(Now)), asserta(stamina(100)));
 	stamina(_).	
@@ -262,11 +262,20 @@ spawnmedicine :-
     asserta(medicineposition(bandage, 20, 10)).	
 
 /*temporary rules */
-w :- inc, retract(playerposition(X, Y)), Next_y is Y-1, asserta(playerposition(X, Next_y)), printwalk.
-s :- inc, retract(playerposition(X, Y)), Next_x is X+1, asserta(playerposition(Next_x, Y)), printwalk.
-e :- inc, retract(playerposition(X, Y)), Next_y is Y+1, asserta(playerposition(X, Next_y)), printwalk.
-n :- inc, retract(playerposition(X, Y)), Next_x is X-1, asserta(playerposition(Next_x, Y)), printwalk.
+w :- cekstamina, inc, retract(playerposition(X, Y)), Next_y is Y-1, asserta(playerposition(X, Next_y)), printwalk,
+	 retract(stamina(S)), N is S-10, asserta(stamina(N)), !;
+	 write('You dont have enough stamina to walk, please take a rest first!').
+s :- cekstamina, inc, retract(playerposition(X, Y)), Next_x is X+1, asserta(playerposition(Next_x, Y)), printwalk,
+	 retract(stamina(S)), N is S-10, asserta(stamina(N)), !;
+	 write('You dont have enough stamina to walk, please take a rest first!').
+e :- cekstamina, inc, retract(playerposition(X, Y)), Next_y is Y+1, asserta(playerposition(X, Next_y)), printwalk,
+	 retract(stamina(S)), N is S-10, asserta(stamina(N)), !;
+	 write('You dont have enough stamina to walk, please take a rest first!').
+n :- cekstamina, inc, retract(playerposition(X, Y)), Next_x is X-1, asserta(playerposition(Next_x, Y)), printwalk,
+	 retract(stamina(S)), N is S-10, asserta(stamina(N)), !;
+	 write('You dont have enough stamina to walk, please take a rest first!').
 
+cekstamina :- stamina(N), N>=10.
 
 /*inventory rules */
 isiinventory([], 0).
