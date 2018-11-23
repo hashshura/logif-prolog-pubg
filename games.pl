@@ -9,7 +9,7 @@
 :- dynamic(enemycount/1).
 :- dynamic(inventory/1).
 :- dynamic(step/1).
-:- dynamic(enemyweapon/3).
+:- dynamic(enemyweapon/2).
 :- dynamic(armorposition/3).
 :- dynamic(weaponposition/3).
 :- dynamic(medicineposition/3).
@@ -20,6 +20,7 @@
 :- dynamic(existarmor/3).
 :- dynamic(ammo/1).
 :- dynamic(armorlist/2).
+:- dynamic(weaponlist/2).
 
 inc :-
 	retract(step(X)),
@@ -43,12 +44,12 @@ start :-
 	asserta(step(0)),
 	asserta(health(100)),
 	asserta(playerposition(2,2)),
-	asserta(stamina(100)),
+	asserta(stamina(80)),
 	asserta(armor(0)),
     asserta(weapon('none')),
 	asserta(inventory([])),
 	asserta(ammo(0)),
-	createenemies, existammo, existarmor, existweapon, existmedicine, armorinit, !,
+	createenemies, existammo, existarmor, existweapon, existmedicine, armorinit, weaponinit, !,
 	write('======================================================='), nl,
 	write('=                         _             _             ='), nl,
 	write('=                        | |           ( )            ='), nl,
@@ -196,8 +197,9 @@ weaponinit :-
 	asserta(weaponlist(pistol,30)),
 	asserta(weaponlist(watergun,20)),
 	asserta(weaponlist(sword,35)),
-	asserta(weaponlist(grenade, 25)).
-	
+	asserta(weaponlist(grenade, 25)),
+	asserta(weaponlist(none, 0)).
+	 
 existammo :-
 	asserta(ammoposition(pistol, 2,4)),
 	asserta(ammoposition(pistol, 4,6)),
@@ -312,6 +314,17 @@ drop(X) :- isexist(X), isweapon(X), removeobject(X), retract(playerposition(PX, 
 drop(X) :- write('You dont have the '), write(X), write(' item'), nl, !.
 
 gameover :- write('GAME OVER'),nl,write('Sisa musuh sekarang adalah : '),enemycount(X),write(X),nl.
+
+/* Attack */
+attack :- playerposition(Xp,Yp), enemyposition(Id,Xp,Yp), !, enemyweapon(Id, We), weapon(Wp), retract(health(Hp)), armor(Ap), ammo(Ammo), Htotal is Hp + Ap, asserta(health(Htotal)), playerattack(Wp,We,100).
+attack :- write('There is not enemy in your position LOL').
+
+playerattack(Wp,We,He) :- health(Hp), Hp =< 0, !, write('You LOSE').
+playerattack(Wp,We,He) :- ammo(A), A == 0, !, enemyattack(Wp,We,He).
+playerattack(Wp,We,He) :- retract(ammo(A)), Aleft is A - 1, asserta(ammo(Aleft)), weaponlist(Wp,Dp), Heleft is He - Dp, write('Enemy attacked by '), write(Wp), write(' ,Enemy Health now is '), write(Heleft), write('. Battle still continue !'), nl, enemyattack(Wp,We,Heleft).
+
+enemyattack(Wp,We,He) :- He =< 0, !, write('You WIN').
+enemyattack(Wp,We,He) :-   write(We), retract(health(Hp)), write(We), weaponlist(We,De), Hpleft is Hp - De, asserta(health(Hpleft)), write('You are attacked by '), write(Wp), write(' ,Your Health now is '), write(Hpleft), write('. Battle still continue !'), nl, playerattack(Wp,We,He).
 
 /* File's */
 save(Filename):-
