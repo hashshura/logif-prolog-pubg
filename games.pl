@@ -18,6 +18,7 @@
 :- dynamic(armorlist/2).
 :- dynamic(ammoweapon/2).
 :- dynamic(weaponlist/2).
+:- dynamic(enemiesleft/1).
 
 inc :-
 	retract(step(X)),
@@ -26,9 +27,9 @@ inc :-
 	enemydeadzone(1).
 	
 enemydeadzone(Id) :-
-	(enemyposition(Id, X, Y), deadzone(X, Y), retract(enemyposition(Id, X, Y)); 1 == 1),
+	(enemyposition(Id, X, Y), deadzone(X, Y), retract(enemyposition(Id, X, Y)), !; 1 == 1),
 	Next_Id is Id + 1, enemycount(Enemy_count),
-	(Next_Id =< Enemy_count, enemydeadzone(Next_Id); 1 == 1).
+	(Next_Id =< Enemy_count, enemydeadzone(Next_Id), !; 1 == 1).
 	
 /*Enemies stuffs*/
 spawnenemies :-
@@ -36,11 +37,12 @@ spawnenemies :-
 	asserta(enemyweapon(1,ak47)),
 	asserta(enemyposition(2,5,8)),
 	asserta(enemyweapon(2,ak47)),
-	asserta(enemyposition(3,9,1)),
+	asserta(enemyposition(3,9,4)),
 	asserta(enemyweapon(3,ak47)),
 	asserta(enemyposition(4,4,5)),
 	asserta(enemyweapon(4,ak47)),
-	asserta(enemycount(4)).
+	asserta(enemycount(4)),
+	asserta(enemiesleft(4)).
 
 /*start games */
 start :-
@@ -128,15 +130,16 @@ restmax :-
 	(stamina(Now), Now > 100, !, retract(stamina(Now)), asserta(stamina(100)));
 	stamina(_).	
 enemywalk(Id) :-
-	enemycount(N), ((Id =< N, !, retract(enemyposition(Id,X,Y)), playerposition(Xp,Yp),
+	enemycount(N), Id > N, !;
+	\+ enemyposition(Id,_,_), NextId is Id + 1, enemywalk(NextId), !;
+	enemycount(N), Id =< N, !, retract(enemyposition(Id,X,Y)), playerposition(Xp,Yp),
 		(
 			X > Xp, !, X1 is X - 1, asserta(enemyposition(Id,X1,Y));
 			X < Xp, !, X1 is X + 1, asserta(enemyposition(Id,X1,Y));
 			Y > Yp, !, Y1 is Y - 1, asserta(enemyposition(Id,X,Y1));
 			Y < Yp, !, Y1 is Y + 1, asserta(enemyposition(Id,X,Y1));
 			asserta(enemyposition(Id,X,Y))
-		), NextId is Id + 1, enemywalk(NextId)
-	); Id > N).
+		), NextId is Id + 1, enemywalk(NextId).
 
 printlocation(X, Y) :-
 	write('You are currently in '),
@@ -426,7 +429,7 @@ drop(X) :- write('You dont have the '), write(X), write(' item'), nl, !.
 
 gameover :-
 	write('GAME OVER!'), nl, 
-	write('Enemies left: '), enemycount(X), write(X), nl,
+	write('Enemies left: '), enemiesleft(X), write(X), nl,
 	halt.
 
 /* Attack */
@@ -463,6 +466,7 @@ playerattack(Wp,We,He) :-
 	(
 		Heleft > 0, !, write('The battle continues!'), nl, enemyattack(Wp,We,Heleft);
 		write('The enemy is dead, blood gushing through his veins.'), nl,
+		retract(enemiesleft(Left)), Next_Left is Left - 1, asserta(enemiesleft(Next_Left)),
 		retract(health(Htotal)),
 		(
 			Htotal > 100, !, assert(health(100)), Atotal is Htotal - 100, retract(armor(_)), assert(armor(Atotal));
