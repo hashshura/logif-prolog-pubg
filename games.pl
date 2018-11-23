@@ -294,7 +294,10 @@ ammoinit :-
 spawnmedicine :- 
     asserta(medicineposition(bandage, 3, 7)),
     asserta(medicineposition(bandage, 6, 15)),
-    asserta(medicineposition(bandage, 20, 10)).	
+    asserta(medicineposition(bandage, 20, 10)),
+    asserta(medicineposition(betadine, 8, 9)),
+    asserta(medicineposition(betadine, 2, 2)),
+    asserta(medicineposition(betadine, 4, 16)).	
 
 /*temporary rules */
 w :- cekstamina, inc, retract(playerposition(X, Y)), Next_y is Y-1, asserta(playerposition(X, Next_y)), printwalk,
@@ -360,10 +363,10 @@ status :- retract(health(Health)), write('Health: '), H is Health, write(H), nl,
 		retract(inventory(Inventory)), write('Inventory: '), printisiinventory(Inventory), asserta(inventory(Inventory)), !.
 
 /*classify an object */
-isweapon(X) :- (X == 'pistol');(X == 'watergun');(X == 'sword');(X == 'ak47').
-ismedicine(X) :- (X == 'bandage').
-isarmor(X) :- (X == 'hat');(x == 'vest');(x == 'helmet');(x == 'kopyah').
-isammo(X) :- (X == 'peluruak47'); (X == pelurupistol); (X == 'peluruwatergun').
+isweapon(X) :- (X == pistol);(X == watergun);(X == sword);(X == ak47).
+ismedicine(X) :- (X == bandage); (X == betadine).
+isarmor(X) :- (X == hat);(X == vest);(X == helmet);(X == kopyah).
+isammo(X) :- (X == peluruak47); (X == pelurupistol); (X == peluruwatergun).
 
 /*take an object and placed it to inventory */
 take(X) :- isweapon(X), retract(playerposition(PX, PY)), asserta(playerposition(PX, PY)), 
@@ -376,14 +379,15 @@ take(X) :- isammo(X), retract(playerposition(PX, PY)), asserta(playerposition(PX
             ammoposition(X, PX, PY), takeammo(PX, PY), !.
 take(X) :- write(X), write(' is not available in this area.'), nl,!.
 
-takeweapon(X, Y) :- retract(weaponposition(Weapon, X, Y)), asserta(weaponposition(Weapon, X, Y)), addinventory(Weapon, X, Y).
-takearmor(X, Y) :- retract(armorposition(Armor, X, Y)), asserta(armorposition(Armor, X, Y)), addinventory(Armor, X, Y).
-takemedicine(X, Y) :- retract(medicineposition(Medicine, X, Y)),asserta(medicineposition(Medicine, X, Y)), addinventory(Medicine,X,Y).
-takeammo(X, Y) :- retract(ammoposition(Ammo,X, Y)), asserta(ammoposition(Ammo, X, Y)), addammo(Ammo, X, Y). 
+takeweapon(X, Y) :- retract(weaponposition(Weapon, X, Y)), addinventory(Weapon, X, Y).
+takearmor(X, Y) :- retract(armorposition(Armor, X, Y)), addinventory(Armor, X, Y).
+takemedicine(X, Y) :- retract(medicineposition(Medicine, X, Y)), addinventory(Medicine,X,Y).
+takeammo(X, Y) :- retract(ammoposition(Ammo, X, Y)), addammo(Ammo, X, Y). 
 
 /*use an object in inventory, and removed it from inventory */
 use(X) :- isexist(X), isweapon(X), retract(weapon(W)), write(X), write(' is equipped.'), asserta(weapon(X)), removeobject(X), changeweapon(W), !. 
-use(X) :- isexist(X), (X == 'bandage'), retract(health(H)), asserta(health(H+10)), removeobject(X), write('Your Health is increasing 10 units!'), nl, !.
+use(X) :- isexist(X), (X == 'bandage'), retract(health(H)), asserta(health(H+10)), cekhealth, removeobject(X), write('Your Health is increasing 10 units!'), nl, !.
+use(X) :- isexist(X), (X == 'betadine'), retract(health(H)), asserta(health(H+15)), cekhealth, removeobject(X), write('Your Health is increasing 15 units!'), nl, !.
 use(X) :- isexist(X), (X == 'hat'), retract(armor(Armor)), asserta(armor(Armor+5)), removeobject(X), write('Your Armor is increasing 5 units!'), nl, !.
 use(X) :- isexist(X), (X == 'vest'), retract(armor(Armor)), asserta(armor(Armor+10)), removeobject(X), write('Your Armor is increasing 10 units!'), nl, !.
 use(X) :- isexist(X), (X == 'helmet'), retract(armor(Armor)), asserta(armor(Armor+15)), removeobject(X), write('Your Armor is increasing 15 units!'), nl, !.
@@ -403,6 +407,7 @@ changeweapon(X) :- (X \== 'none'), retract(inventory(Inventory)), isiinventory(I
 					((X \== 'sword', write('But the guns empty, cuy.'), nl);(X == 'sword', nl)), !.
 changeweapon(X) :- retract(inventory(Inventory)), asserta(inventory(Inventory)), retract(ammo(_)), asserta(ammo(0)),
 					((X \== 'sword', write('But the guns empty, cuy.'), nl);(X == 'sword', nl)), !.
+
 
 mini(X, Y, Z) :- (X < Y, Z is X), !.
 mini(X, Y, Z) :- (Y =< X, Z is Y), !.
