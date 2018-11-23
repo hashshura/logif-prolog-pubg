@@ -269,4 +269,8 @@ takemedicine(X, Y) :- retract(medicineposition(Medicine, X, Y)), addmedicine(Med
 
 /*use an object in inventory, and removed it from inventory */
 use(X) :- isexist(X), isweapon(X), write(X), write(' is equipped.'), nl, asserta(weapon(X)), removeobject(X), !. 
-% use(X) :- isexist(X), (X == 'bandage'), retract(Health(H)), asserta(Health(H+10)), removeobject(X), write('Your Health is increasing 10 unit!'), nl.
+use(X) :- isexist(X), (X == 'bandage'), retract(health(H)), asserta(health(H+10)), removeobject(X), write('Your Health is increasing 10 units!'), nl.
+use(X) :- isexist(X), (X == 'hat'), retract(armor(Armor)), asserta(armor(Armor+5)), removeobject(X), write('Your Armor is increasing 5 units!'), nl.
+use(X) :- isexist(X), (X == 'vest'), retract(armor(Armor)), asserta(armor(Armor+10)), removeobject(X), write('Your Armor is increasing 10 units!'), nl.
+use(X) :- isexist(X), (X == 'helmet'), retract(armor(Armor)), asserta(armor(Armor+15)), removeobject(X), write('Your Armor is increasing 15 units!'), nl.
+use(X) :- isexist(X), (X == 'kopyah'), retract(armor(Armor)), asserta(armor(Armor+20)), removeobject(X), write('Your Armor is increasing 20 units!'), nl.
