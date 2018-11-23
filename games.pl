@@ -348,7 +348,7 @@ changeweapon(X) :- (X \== 'none'), retract(inventory(Inventory)), isiinventory(I
 					append([X], Inventory, TY), asserta(inventory(TY)), !.
 changeweapon(X) :- retract(inventory(Inventory)), asserta(inventory(Inventory)), !.
 
-% use(X) :- isexist(X), armorlist(X,Val),retract(armor(Armor)), ArmorNow is Armor + Val, asserta(armor(ArmorNow)), removeobject(X),write('Your Armor is increasing '),write(Val),write(' units!'), nl.
+use(X) :- isexist(X), armorlist(X,Val),retract(armor(Armor)), ArmorNow is Armor + Val, asserta(armor(ArmorNow)), removeobject(X),write('Your Armor is increasing '),write(Val),write(' units!'), nl.
 
 /* drop an object from inventory */
 drop(X) :- isexist(X), isarmor(X), removeobject(X), retract(playerposition(PX, PY)), asserta(playerposition(PX, PY)), 
@@ -359,6 +359,8 @@ drop(X) :- isexist(X), isweapon(X), removeobject(X), retract(playerposition(PX, 
 			asserta(weaponposition(X, PX, PY)), !.
 drop(X) :- write('You dont have the '), write(X), write(' item'), nl, !.
 
+gameover :- write('GAME OVER'),nl,write('Sisa musuh sekarang adalah : '),enemycount(X),write(X),nl.
+
 /* File's */
 save(Filename):-
 	/* Function to save file */
@@ -366,13 +368,18 @@ save(Filename):-
 	open(Filename, write, Stream),
 
 	/* Get Data */
+	playerposition(Xp,Yp),
+	enemycount(EnemyCount),
 	health(Health),
 	armor(Armor),
 	ammo(Ammo),
-
+	inventory(Inventory),
 	/* Write player data */
+	write(Stream, Xp),write(' '),write(Stream,Yp), nl(Stream),
+	write(Stream, EnemyCount),nl(Stream),
 	write(Stream, Health), nl(Stream),
 	write(Stream, Armor), nl(Stream),
 	write(Stream, Ammo), nl(Stream),
+	write(Stream, Inventory), nl(Stream),
 	write('Save data successfully created !'), nl,
 	close(Stream).
