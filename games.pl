@@ -144,6 +144,15 @@ printlocation(X, Y) :-
 
 printwalk :-
 	playerposition(X, Y),
+	(
+		deadzone(X, Y),
+		write('You are stepping into the deadzone. A helicopter comes to your vicinity.'), nl,
+		write('"A Warrior attempts trespassing," a voice shouted.'), nl, nl,
+		write('BANG! You have been shot.'), nl,
+		write('Blood gushing through your veins, you are now sleeping so soundly...'), nl, nl,
+		gameover;
+		1 == 1
+	),
 	printlocation(X, Y),
 	(
 		(Xn is X-1, (
@@ -413,10 +422,10 @@ playerattack(Wp,We,He) :-
 enemyattack(Wp,We,He) :-
 	retract(health(Hp)), weaponlist(We,De), Hpleft is Hp - De, asserta(health(Hpleft)),
 	write('The enemy sneaks from behind and hits you using '), write(We), write('.'), nl,
-	write('. The attack reduces your health point to '), write(Hpleft), write('.'), nl,
+	write('The attack reduces your health point to '), write(Hpleft), write('.'), nl,
 	(
 		Hpleft > 0, !, write('The battle continues!'), nl, playerattack(Wp,We,He);
-		write('You are dead, the world fades black...'), nl, gameover
+		nl, write('You are dead, the world fades black...'), nl, nl, gameover
 	).
 
 /* File's */
