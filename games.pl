@@ -133,10 +133,10 @@ enemywalk(Id) :-
 look :-
 	playerposition(X, Y),
 	(
-		(enemyposition(Id,X,Y), write('In your position, There is Enemy'), nl, !);
-		(medicineposition(Id,X,Y), write('In your position, There is '), write(Id), nl, !);
-		(weaponposition(Id,X,Y), write('In your position, There is '), write(Id), nl, !);
-		(armorposition(_,X,Y), write('In your position, There is '), write(Id), nl, !);
+		(enemyposition(Id,X,Y), write('In your position, There is Enemy'), nl);
+		(medicineposition(Id,X,Y), write('In your position, There is '), write(Id), nl);
+		(weaponposition(Id,X,Y), write('In your position, There is '), write(Id), nl);
+		(armorposition(Id,X,Y), write('In your position, There is '), write(Id), nl);
 		(playerposition(X,Y))
 	),
 	Startpx is X-1,
@@ -310,6 +310,8 @@ drop(X) :- isexist(X), ismedicine(X), removeobject(X), retract(playerposition(PX
 drop(X) :- isexist(X), isweapon(X), removeobject(X), retract(playerposition(PX, PY)), asserta(playerposition(PX, PY)),
 			asserta(weaponposition(X, PX, PY)), !.
 drop(X) :- write('You dont have the '), write(X), write(' item'), nl, !.
+
+gameover :- write('GAME OVER'),nl,write('Sisa musuh sekarang adalah : '),enemycount(X),write(X),nl.
 
 /* File's */
 save(Filename):-
