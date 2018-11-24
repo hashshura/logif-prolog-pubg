@@ -138,6 +138,7 @@ rest :-
 		1 == 1
 	),
 	(
+		playerposition(X, Y),
 		enemyposition(_,X, Y),
 		write('Unknowingly, an enemy ambushes you from behind, commencing a duel!'), nl,
 		doattack(X, Y), !;
