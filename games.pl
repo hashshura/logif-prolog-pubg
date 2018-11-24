@@ -81,6 +81,9 @@ start :-
 	write(' for the battle by a(n) (un)lucky lottery. Carve the'), nl,
 	write(' way out through your opponents\' corpses.'), nl,
 	nl,
+	help.
+
+help :-
 	write(' Available commands:                               '), nl,
 	write('    start. -- start the game!                      '), nl,
 	write('    help. -- show available commands               '), nl,
@@ -107,6 +110,8 @@ start :-
 	write('    X = deadzone    '), nl,
 	write('    @ = secret      '), nl,
 	nl.
+
+quit :- halt.	
 
 /*maps stuffs */
 deadzone(X, Y) :-
