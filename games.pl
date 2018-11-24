@@ -429,7 +429,7 @@ takeammo(Ammo, X, Y) :- retract(ammoposition(Ammo, X, Y)), addammo(Ammo, X, Y).
 /*use an object in inventory, and removed it from inventory */
 use(X) :- isexist(X), isweapon(X), retract(weapon(W)), write(X), write(' is equipped. '), asserta(weapon(X)), removeobject(X), changeweapon(W), !. 
 use(X) :- isexist(X), (X == 'bandage'), retract(health(H)), NewH is H + 10, asserta(health(NewH)), cekhealth(X), !.
-use(X) :- isexist(X), (X == 'betadine'), retract(health(H)), NewH is H + 10, asserta(health(NewH)), cekhealth(X), !.
+use(X) :- isexist(X), (X == 'betadine'), retract(health(H)), NewH is H + 15, asserta(health(NewH)), cekhealth(X), !.
 use(X) :- isexist(X), (X == 'hat'), retract(armor(Armor)),Newarmor is Armor + 5, asserta(armor(Newarmor)), removeobject(X), write('Your Armor is increasing 5 units!'), nl, !.
 use(X) :- isexist(X), (X == 'vest'), retract(armor(Armor)),Newarmor is Armor+10, asserta(armor(Newarmor)), removeobject(X), write('Your Armor is increasing 10 units!'), nl, !.
 use(X) :- isexist(X), (X == 'helmet'), retract(armor(Armor)),Newarmor is Armor+15, asserta(armor(Newarmor)), removeobject(X), write('Your Armor is increasing 15 units!'), nl, !.
@@ -438,7 +438,7 @@ use(X) :- (X == peluruak47), weapon(W), W == ak47, ammoweapon(peluruak47, P), P 
 			Np is P - Mini, retract(ammoweapon(peluruak47, Pelor)), asserta(ammoweapon(peluruak47,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
 			write('ak47 '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
 use(X) :- (X == pelurupistol), weapon(W), W == pistol, ammoweapon(pelurupistol, P),P > 0, retract(ammo(Now)), Q is 7 - Now, mini(P, Q, Mini), 
-			Np is P - Mini, retract(ammoweapon(peluruakpistol, Pelor)), asserta(ammoweapon(peluruapistol,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
+			Np is P - Mini, retract(ammoweapon(peluruakpistol, Pelor)), asserta(ammoweapon(pelurupistol,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
 			write('pistol '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
 use(X) :- (X == peluruwatergun), weapon(W), W == watergun, ammoweapon(peluruwatergun, P), P > 0, retract(ammo(Now)), Q is 10 - Now, mini(P, Q, Mini), 
 			Np is P - Mini, retract(ammoweapon(peluruwatergun, Pelor)), asserta(ammoweapon(peluruwatergun,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
@@ -450,11 +450,23 @@ cekhealth(X) :- health(H), H>100, retract(health(H)), asserta(health(100)),write
 
 changeweapon(X) :- (X \== none), retract(inventory(Inventory)), isiinventory(Inventory, Frek), (Frek < 10), 
 					append([X], Inventory, TY), asserta(inventory(TY)), retract(ammo(Pelor)), asserta(ammo(0)), 
-					((X \== sword, write('But the guns empty, cuy.'), nl, 
+					((X \== sword, write('But the guns empty, cuy. xxx'), nl, write(Pelor), 
+					retract(ammoweapon(pelurupistol, Ada)), Newada is Ada + Pelor, asserta(ammoweapon(X, Newada))
+					),!;(X == sword, nl)), !.
+
+changeweapon(X) :- (X \== none), retract(inventory(Inventory)), isiinventory(Inventory, Frek), (Frek < 10), 
+					append([X], Inventory, TY), asserta(inventory(TY)), retract(ammo(Pelor)), asserta(ammo(0)), 
+					((X \== sword, write('But the guns empty, cuy. xxx'), nl, write(Pelor), 
 					retract(ammoweapon(X, Ada)), Newada is Ada + Pelor, asserta(ammoweapon(X, Newada))
 					),!;(X == sword, nl)), !.
 
-changeweapon(X) :- retract(inventory(Inventory)), asserta(inventory(Inventory)), retract(ammo(_)), asserta(ammo(0)),
+changeweapon(X) :- (X \== none), retract(inventory(Inventory)), isiinventory(Inventory, Frek), (Frek < 10), 
+					append([X], Inventory, TY), asserta(inventory(TY)), retract(ammo(Pelor)), asserta(ammo(0)), 
+					((X \== sword, write('But the guns empty, cuy. xxx'), nl, write(Pelor), 
+					retract(ammoweapon(X, Ada)), Newada is Ada + Pelor, asserta(ammoweapon(X, Newada))
+					),!;(X == sword, nl)), !.
+
+changeweapon(X) :- (X == none), retract(inventory(Inventory)), asserta(inventory(Inventory)), retract(ammo(_)), asserta(ammo(0)),
 					((X \== sword, write('But the guns empty, cuy.'), nl),!;(X == sword, nl)), !.
 
 
