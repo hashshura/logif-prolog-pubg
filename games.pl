@@ -30,7 +30,8 @@ inc :-
 	retract(step(X)),
 	Next_X is X+1,
 	asserta(step(Next_X)),
-	enemydeadzone(1).
+	enemydeadzone(1),
+	checkvictory.
 	
 enemydeadzone(Id) :-
 	(enemyposition(Id, X, Y), deadzone(X, Y), retract(enemyposition(Id, X, Y)), !; 1 == 1),
@@ -567,8 +568,12 @@ gameover :-
 	write('GAME OVER!'), nl, 
 	write('Enemies left: '), enemiesleft(X), write(X), nl,
 	halt.
-	
+
+checkvictory :-
+	(\+ enemyposition(_,_,_), enemiesleft(X), X < 4, !, victory; 1 == 1).	
+
 victory :-
+	nl,
 	write('A loud bell is ringing.'), nl,
 	write('"Congratulations, Warrior!", a worrisome shouting is heard.'), nl, nl,
 	write('You have killed all of your enemies.'), nl,
@@ -613,7 +618,7 @@ playerattack(Wp,We,He) :-
 		Heleft > 0, !, write('The battle continues!'), nl, enemyattack(Wp,We,Heleft);
 		write('The enemy is dead, blood gushing through his veins.'), nl,
 		retract(enemiesleft(Left)), Next_Left is Left - 1, asserta(enemiesleft(Next_Left)),
-		(Next_Left == 0, nl, victory, !; 1 == 1),
+		checkvictory,
 		retract(health(Htotal)),
 		(
 			Htotal > 100, !, asserta(health(100)), Atotal is Htotal - 100, retract(armor(_)), asserta(armor(Atotal));
