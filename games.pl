@@ -39,7 +39,7 @@ enemydeadzone(Id) :-
 	
 /*Enemies stuffs*/
 spawnenemies :-
-	asserta(enemyposition(1,2,3)),
+	asserta(enemyposition(1,12,15)),
 	asserta(enemyweapon(1,ak47)),
 	asserta(enemyposition(2,5,8)),
 	asserta(enemyweapon(2,ak47)),
@@ -336,17 +336,17 @@ spawnmedicine :-
     asserta(medicineposition(betadine, 4, 16)).	
 
 /*temporary rules */
-w :- enemywalk(1), cekstamina, inc, retract(playerposition(X, Y)), Next_y is Y-1, asserta(playerposition(X, Next_y)), printwalk,
-	 retract(stamina(S)), N is S-10, asserta(stamina(N)), !;
+w :- cekstamina, inc, retract(playerposition(X, Y)), Next_y is Y-1, asserta(playerposition(X, Next_y)), printwalk,
+	 retract(stamina(S)), N is S-10, asserta(stamina(N)), enemywalk(1), !;
 	 write('You don\'t have enough stamina to walk, please take a rest first!').
-s :- enemywalk(1), cekstamina, inc, retract(playerposition(X, Y)), Next_x is X+1, asserta(playerposition(Next_x, Y)), printwalk,
-	 retract(stamina(S)), N is S-10, asserta(stamina(N)), !;
+s :- cekstamina, inc, retract(playerposition(X, Y)), Next_x is X+1, asserta(playerposition(Next_x, Y)), printwalk,
+	 retract(stamina(S)), N is S-10, asserta(stamina(N)), enemywalk(1), !;
 	 write('You don\'t have enough stamina to walk, please take a rest first!').
-e :- enemywalk(1), cekstamina, inc, retract(playerposition(X, Y)), Next_y is Y+1, asserta(playerposition(X, Next_y)), printwalk,
-	 retract(stamina(S)), N is S-10, asserta(stamina(N)), !;
+e :- cekstamina, inc, retract(playerposition(X, Y)), Next_y is Y+1, asserta(playerposition(X, Next_y)), printwalk,
+	 retract(stamina(S)), N is S-10, asserta(stamina(N)), enemywalk(1), !;
 	 write('You don\'t have enough stamina to walk, please take a rest first!').
-n :- enemywalk(1), cekstamina, inc, retract(playerposition(X, Y)), Next_x is X-1, asserta(playerposition(Next_x, Y)), printwalk,
-	 retract(stamina(S)), N is S-10, asserta(stamina(N)), !;
+n :- cekstamina, inc, retract(playerposition(X, Y)), Next_x is X-1, asserta(playerposition(Next_x, Y)), printwalk,
+	 retract(stamina(S)), N is S-10, asserta(stamina(N)), enemywalk(1), !;
 	 write('You don\'t have enough stamina to walk, please take a rest first!').
 
 cekstamina :- stamina(N), N>=10.
@@ -374,7 +374,7 @@ jumlahammo(X) :- ammoweapon(peluruak47, P), ((P > 0, A is 1),!;(P == 0, A is 0))
             	 X is A + B + C, !.
 
 addinventory(Object, X, Y) :- inventory(Inventory), isiinventory(Inventory, Frek), jumlahammo(Jumlahammo),
-                              ((Frek + Jumlahammo) < 3), append([Object], Inventory, TY), retract(inventory(Inv)), asserta(inventory(TY)), 
+                              ((Frek + Jumlahammo) < 10), append([Object], Inventory, TY), retract(inventory(Inv)), asserta(inventory(TY)), 
 							  write('You took the '), write(Object), write('!'), nl, !.
 
 addinventory(Object, X, Y) :- isweapon(Object), asserta(weaponposition(Object, X, Y)), write('Inventory is full!'), nl, !.
@@ -435,12 +435,12 @@ takeammo(Ammo, X, Y) :- retract(ammoposition(Ammo, X, Y)), addammo(Ammo, X, Y).
 
 /*use an object in inventory, and removed it from inventory */
 use(X) :- isexist(X), isweapon(X), retract(weapon(W)), write(X), write(' is equipped. '), asserta(weapon(X)), removeobject(X), changeweapon(W), enemywalk(1), !. 
-use(X) :- isexist(X), (X == 'bandage'), retract(health(H)), NewH is H + 10, asserta(health(NewH)), cekhealth(X), enemywalk(1), !.
-use(X) :- isexist(X), (X == 'betadine'), retract(health(H)), NewH is H + 15, asserta(health(NewH)), cekhealth(X), enemywalk(1), !.
-use(X) :- isexist(X), (X == 'hat'), retract(armor(Armor)),Newarmor is Armor + 5, asserta(armor(Newarmor)), removeobject(X), write('Your Armor is increasing 5 units!'), nl, enemywalk(1), !.
-use(X) :- isexist(X), (X == 'vest'), retract(armor(Armor)),Newarmor is Armor+10, asserta(armor(Newarmor)), removeobject(X), write('Your Armor is increasing 10 units!'), nl, enemywalk(1), !.
-use(X) :- isexist(X), (X == 'helmet'), retract(armor(Armor)),Newarmor is Armor+15, asserta(armor(Newarmor)), removeobject(X), write('Your Armor is increasing 15 units!'), nl, enemywalk(1), !.
-use(X) :- isexist(X), (X == 'kopyah'), retract(armor(Armor)),Newarmor is Armor+20, asserta(armor(Newarmor)), removeobject(X), write('Your Armor is increasing 20 units!'), nl, enemywalk(1), !.
+use(X) :- isexist(X), (X == bandage), retract(health(H)), NewH is H + 10, asserta(health(NewH)), cekhealth(X), enemywalk(1), removeobject(X), !.
+use(X) :- isexist(X), (X == betadine), retract(health(H)), NewH is H + 15, asserta(health(NewH)), cekhealth(X), enemywalk(1), removeobject(X), !.
+use(X) :- isexist(X), (X == hat), retract(armor(Armor)),Newarmor is Armor + 5, asserta(armor(Newarmor)), removeobject(X), cekarmor(X), enemywalk(1), !.
+use(X) :- isexist(X), (X == vest), retract(armor(Armor)),Newarmor is Armor + 10, asserta(armor(Newarmor)), removeobject(X), cekarmor(X), enemywalk(1), !.
+use(X) :- isexist(X), (X == helmet), retract(armor(Armor)),Newarmor is Armor + 15, asserta(armor(Newarmor)), removeobject(X), cekarmor(X), enemywalk(1), !.
+use(X) :- isexist(X), (X == kopyah), retract(armor(Armor)),Newarmor is Armor + 20, asserta(armor(Newarmor)), removeobject(X), cekarmor(X), enemywalk(1), !.
 use(X) :- (X == peluruak47), weapon(W), W == ak47, ammoweapon(peluruak47, P), P > 0, retract(ammo(Now)), Q is 3 - Now, mini(P, Q, Mini), 
 			Np is P - Mini, retract(ammoweapon(peluruak47, Pelor)), asserta(ammoweapon(peluruak47,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
 			write('ak47 '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, enemywalk(1), !.
@@ -451,9 +451,17 @@ use(X) :- (X == peluruwatergun), weapon(W), W == watergun, ammoweapon(X, P), P >
 			Np is P - Mini, retract(ammoweapon(peluruwatergun, Pelor)), asserta(ammoweapon(peluruwatergun,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
 			write('watergun '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, enemywalk(1), !.
 use(X) :- write('You cant use '), write(X), write(' item'), enemywalk(1). 
+
 cekhealth(X) :- health(H), H>100, retract(health(H)), asserta(health(100)),write('Your health is maximum!'),nl,!;
-			    (X == bandage), write('Your Health is increasing 10 units!'), nl, removeobject(X), !;
-			    (X == betadine), write('Your Health is increasing 15 units!'), removeobject(X), nl.
+			    (X == bandage), write('Your Health is increasing 10 units!'), nl, !;
+			    (X == betadine), write('Your Health is increasing 15 units!'), nl.
+
+cekarmor(X) :- armor(A), A>100, retract(armor(A)), asserta(armor(100)),write('Your Armor is maximum!'),nl,!;
+			    (X == hat), write('Your Armor is increasing 5 units!'), nl, !;
+			    (X == vest), write('Your Armor is increasing 10 units!'), nl, !;
+			    (X == helmet), write('Your Armor is increasing 15 units!'), nl, !;
+			    (X == kopyah), write('Your Armor is increasing 20 units!'), nl.
+
 
 changeweapon(X) :- (X \== none), retract(inventory(Inventory)), isiinventory(Inventory, Frek), (Frek < 10), 
 					append([X], Inventory, TY), asserta(inventory(TY)), retract(ammo(Pelor)), asserta(ammo(0)), 
