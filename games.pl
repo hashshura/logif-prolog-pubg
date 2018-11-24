@@ -4,7 +4,6 @@
 :- dynamic(armor/1).
 :- dynamic(playerposition/2).
 :- dynamic(weapon/1).
-:- dynamic(equip/1).
 :- dynamic(enemyposition/3).
 :- dynamic(enemycount/1).
 :- dynamic(inventory/1).
@@ -19,6 +18,13 @@
 :- dynamic(ammoweapon/2).
 :- dynamic(weaponlist/2).
 :- dynamic(enemiesleft/1).
+
+reset :-
+	retractall(health(_)), retractall(stamina(_)), retractall(armor(_)), retractall(playerposition(_,_)),
+	retractall(weapon(_)), retractall(enemyposition(_,_,_)), retractall(enemycount(_)),
+	retractall(inventory(_)), retractall(step(_)), retractall(enemyweapon(_,_)), retractall(armorposition(_,_,_)),
+	retractall(weaponposition(_,_,_)), retractall(medicineposition(_,_,_)), retractall(ammoposition(_,_,_)), retractall(ammo(_)),
+	retractall(armorlist(_,_)), retractall(ammoweapon(_,_)), retractall(weaponlist(_,_)), retractall(enemiesleft(_)).
 
 inc :-
 	retract(step(X)),
@@ -46,6 +52,7 @@ spawnenemies :-
 
 /*start games */
 start :-
+	reset,
 	asserta(step(0)),
 	asserta(health(100)),
 	asserta(playerposition(2,2)),
@@ -86,8 +93,8 @@ start :-
 	write('    use(Object). -- use an object                  '), nl,
 	write('    attack. -- attack enemy on your vicinity       '), nl,
 	write('    status. -- show your status                    '), nl,
-	write('    save(Filename). -- save your game              '), nl,
-	write('    load(Filename). -- load previously saved game  '), nl,
+	write('    gsave(Filename). -- save your game             '), nl,
+	write('    gload(Filename). -- load previously saved game '), nl,
 	nl,
 	write(' Legends:           '), nl,
 	write('    W = weapon      '), nl,
@@ -126,7 +133,7 @@ printmap(X, Y) :-
 /*rest for players*/
 rest :-
 	inc, enemywalk(1), retract(stamina(Prev)), Now is Prev+20, asserta(stamina(Now)), restmax,
-	write('You rest for a while, increasing your stamina by 10.'), nl,
+	write('You rest for a while, increasing your stamina by 20.'), nl,
 	playerposition(X, Y),
 	(
 		deadzone(X, Y),
@@ -349,7 +356,7 @@ isiinventory([], 0).
 isiinventory([H|T], X) :- isiinventory(T, Y), X is (Y + 1). 
 
 printinventory([]).
-printinventory([H|T]) :- write('--->'), write(H), nl, printinventory(T).
+printinventory([H|T]) :- write(' - '), write(H), nl, printinventory(T).
 
 isada(Object, []) :- false.
 isada(Object, [H|T]) :- (Object == H), !.
@@ -386,22 +393,22 @@ printstatusinventory(I) :- isiinventory(I,XX), (XX > 0), jumlahammo(YY), (YY == 
 printstatusinventory(I) :- isiinventory(I,XXX), (XXX > 0), jumlahammo(YYY), (YYY > 0), printinventory(I), printinventoryammo1, printinventoryammo2, printinventoryammo3, !.
 printstatusinventory(I) :- isiinventory(I,XXXX), (XXXX == 0), jumlahammo(YYYY), (YYYY > 0), printinventoryammo1, printinventoryammo2, printinventoryammo3.
 
-printinventoryammo1 :- ammoweapon(peluruak47, X), (X > 0), write('--->'), write(peluruak47), nl,!;
+printinventoryammo1 :- ammoweapon(peluruak47, X), (X > 0), write(' - '), write(peluruak47), nl,!;
 					   1==1.
-printinventoryammo2 :- ammoweapon(pelurupistol, X), (X > 0), write('--->'), write(pelurupistol), nl,!;
+printinventoryammo2 :- ammoweapon(pelurupistol, X), (X > 0), write(' - '), write(pelurupistol), nl,!;
 					   1==1.
-printinventoryammo3 :- ammoweapon(peluruwatergun, X), (X > 0),write('--->'),  write(peluruwatergun), nl,!;
+printinventoryammo3 :- ammoweapon(peluruwatergun, X), (X > 0), write(' - '), write(peluruwatergun), nl,!;
 					   1==1.
 
 /*player status*/
 status :-
 		write('[Lone Warrior]'), nl,
-		write(' Health:  '), health(H), write(H), nl,
-		write(' Stamina: '), stamina(S), write(S), nl, 
-		write(' Armor:   '), armor(Ar), write(Ar), nl, 
-		write(' Weapon:  '), weapon(W), write(W), nl, 
-		write(' Ammo:    '), ammo(Ammo), write(Ammo), nl, 
-		write(' Inventory: '), nl, inventory(Inventory), printstatusinventory(Inventory), !.
+		write(' Health    : '), health(H), write(H), nl,
+		write(' Stamina   : '), stamina(S), write(S), nl, 
+		write(' Armor     : '), armor(Ar), write(Ar), nl, 
+		write(' Weapon    : '), weapon(W), write(W), nl, 
+		write(' Ammo      : '), ammo(Ammo), write(Ammo), nl, 
+		write(' Inventory : '), nl, inventory(Inventory), printstatusinventory(Inventory), !.
 
 
 /*classify an object */
@@ -440,7 +447,7 @@ use(X) :- (X == peluruak47), weapon(W), W == ak47, ammoweapon(peluruak47, P), P 
 use(X) :- (X == pelurupistol), weapon(W), W == pistol, ammoweapon(pelurupistol, P),P > 0, retract(ammo(Now)), Q is 7 - Now, mini(P, Q, Mini), 
 			Np is P - Mini, retract(ammoweapon(peluruakpistol, Pelor)), asserta(ammoweapon(pelurupistol,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
 			write('pistol '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
-use(X) :- (X == peluruwatergun), weapon(W), W == watergun, ammoweapon(peluruwatergun, P), P > 0, retract(ammo(Now)), Q is 10 - Now, mini(P, Q, Mini), 
+use(X) :- (X == peluruwatergun), weapon(W), W == watergun, ammoweapon(X, P), P > 0, retract(ammo(Now)), Q is 10 - Now, mini(P, Q, Mini), 
 			Np is P - Mini, retract(ammoweapon(peluruwatergun, Pelor)), asserta(ammoweapon(peluruwatergun,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
 			write('watergun '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
 use(X) :- write('You cant use '), write(X), write(' item'). 
@@ -450,20 +457,10 @@ cekhealth(X) :- health(H), H>100, retract(health(H)), asserta(health(100)),write
 
 changeweapon(X) :- (X \== none), retract(inventory(Inventory)), isiinventory(Inventory, Frek), (Frek < 10), 
 					append([X], Inventory, TY), asserta(inventory(TY)), retract(ammo(Pelor)), asserta(ammo(0)), 
-					((X \== sword, write('But the guns empty, cuy. xxx'), nl, write(Pelor), 
-					retract(ammoweapon(pelurupistol, Ada)), Newada is Ada + Pelor, asserta(ammoweapon(X, Newada))
-					),!;(X == sword, nl)), !.
-
-changeweapon(X) :- (X \== none), retract(inventory(Inventory)), isiinventory(Inventory, Frek), (Frek < 10), 
-					append([X], Inventory, TY), asserta(inventory(TY)), retract(ammo(Pelor)), asserta(ammo(0)), 
-					((X \== sword, write('But the guns empty, cuy. xxx'), nl, write(Pelor), 
-					retract(ammoweapon(X, Ada)), Newada is Ada + Pelor, asserta(ammoweapon(X, Newada))
-					),!;(X == sword, nl)), !.
-
-changeweapon(X) :- (X \== none), retract(inventory(Inventory)), isiinventory(Inventory, Frek), (Frek < 10), 
-					append([X], Inventory, TY), asserta(inventory(TY)), retract(ammo(Pelor)), asserta(ammo(0)), 
-					((X \== sword, write('But the guns empty, cuy. xxx'), nl, write(Pelor), 
-					retract(ammoweapon(X, Ada)), Newada is Ada + Pelor, asserta(ammoweapon(X, Newada))
+					((X \== sword, write('But the guns empty, cuy.'), nl,
+					((X==pistol,retract(ammoweapon(pelurupistol, Ada)), Newada is Ada + Pelor, asserta(ammoweapon(pelurupistol, Newada)),!);
+					 (X==ak47, retract(ammoweapon(peluruak47, Ada)), Newada is Ada + Pelor, asserta(ammoweapon(peluruak47, Newada)),!);
+					 (X==watergun, retract(ammoweapon(peluruwatergun, Ada)), Newada is Ada + Pelor, asserta(ammoweapon(peluruwatergun, Newada)))) 
 					),!;(X == sword, nl)), !.
 
 changeweapon(X) :- (X == none), retract(inventory(Inventory)), asserta(inventory(Inventory)), retract(ammo(_)), asserta(ammo(0)),
@@ -475,13 +472,13 @@ mini(X, Y, Z) :- (Y =< X, Z is Y), !.
 
 /* drop an object from inventory */
 drop(X) :- isexist(X), isarmor(X), removeobject(X), retract(playerposition(PX, PY)), asserta(playerposition(PX, PY)), 
-			asserta(armorposition(X, PX, PY)), !.
+			asserta(armorposition(X, PX, PY)), write('You drop '), write(X), write(' item'), !.
 drop(X) :- isexist(X), ismedicine(X), removeobject(X), retract(playerposition(PX, PY)), asserta(playerposition(PX, PY)),
-			asserta(medicineposition(X, PX, PY)), !.
+			asserta(medicineposition(X, PX, PY)), write('You drop '), write(X), write(' item'), !.
 drop(X) :- isexist(X), isweapon(X), removeobject(X), retract(playerposition(PX, PY)), asserta(playerposition(PX, PY)),
-			asserta(weaponposition(X, PX, PY)), !.
+			asserta(weaponposition(X, PX, PY)), write('You drop '), write(X), write(' item'), !.
 drop(X) :- isammo(X), ammoweapon(X, Y), (Y > 0, retract(ammoweapon(X, Y)), asserta(ammoweapon(X, 0)), playerposition(PX, PY), 
-			asserta(ammoposition(X, PX, PY))), !.
+			asserta(ammoposition(X, PX, PY))), write('You drop '), write(X), write(' item'), !.
 drop(X) :- write('You don\'t have the '), write(X), write(' item.'), nl, !.
 
 gameover :-
@@ -540,25 +537,67 @@ enemyattack(Wp,We,He) :-
 		nl, write('You are dead, the world fades black...'), nl, nl, gameover
 	).
 
-/* File's */
-save(Filename):-
-	/* Function to save file */
-	
+/* Load and save game */
+gsave(Filetxt):-
+	atom_concat('savedata/', Filetxt, Filename),
 	open(Filename, write, Stream),
+	save_facts(Stream),
+	close(Stream),
+	write('Game saved successfully to '),
+	write(Filename),
+	write('!'), nl.
 
-	/* Get Data */
-	playerposition(Xp,Yp),
-	enemycount(EnemyCount),
-	health(Health),
-	armor(Armor),
-	ammo(Ammo),
-	inventory(Inventory),
-	/* Write player data */
-	write(Stream, Xp),write(' '),write(Stream,Yp), nl(Stream),
-	write(Stream, EnemyCount),nl(Stream),
-	write(Stream, Health), nl(Stream),
-	write(Stream, Armor), nl(Stream),
-	write(Stream, Ammo), nl(Stream),
-	write(Stream, Inventory), nl(Stream),
-	write('Save data successfully created!'), nl,
-	close(Stream).
+save_facts(Stream) :- save_status(Stream).
+save_facts(Stream) :- save_enemies(Stream).
+save_facts(Stream) :- save_armor(Stream).
+save_facts(Stream) :- save_weapon(Stream).
+save_facts(Stream) :- save_medicine(Stream).
+save_facts(Stream) :- save_ammo(Stream).
+save_facts(Stream) :- save_armorlist(Stream).
+save_facts(Stream) :- save_weaponlist(Stream).
+save_facts(Stream) :- save_ammoweapon(Stream).
+save_facts(_) :- !.
+
+save_status(Stream) :-
+	health(Health), write(Stream, health(Health)), write(Stream, '.'), nl(Stream),
+	stamina(Stamina), write(Stream, stamina(Stamina)), write(Stream, '.'), nl(Stream),
+	armor(Armor), write(Stream, armor(Armor)), write(Stream, '.'), nl(Stream),
+	playerposition(X, Y), write(Stream, playerposition(X, Y)), write(Stream, '.'), nl(Stream),
+	weapon(Weapon), write(Stream, weapon(Weapon)), write(Stream, '.'), nl(Stream),
+	ammo(Ammo), write(Stream, ammo(Ammo)), write(Stream, '.'), nl(Stream),
+	inventory(Inventory), write(Stream, inventory(Inventory)), write(Stream, '.'), nl(Stream),
+	step(Step), write(Stream, step(Step)), write(Stream, '.'), nl(Stream),
+	fail.
+	
+save_enemies(Stream) :-
+	enemycount(Enemies), write(Stream, enemycount(Enemies)), write(Stream, '.'), nl(Stream),
+	enemiesleft(Enemies_left), write(Stream, enemiesleft(Enemies_left)), write(Stream, '.'), nl(Stream),
+	!, enemyposition(Id, X, Y), write(Stream, enemyposition(Id, X, Y)), write(Stream, '.'), nl(Stream),
+	enemyweapon(Id, Weapon), write(Stream, enemyweapon(Id, Weapon)), write(Stream, '.'), nl(Stream),
+	fail.
+	
+save_armor(Stream) :- armorposition(H, X, Y), write(Stream, armorposition(H, X, Y)), write(Stream, '.'), nl(Stream), fail.
+save_weapon(Stream) :- weaponposition(H, X, Y), write(Stream, weaponposition(H, X, Y)), write(Stream, '.'), nl(Stream), fail.
+save_medicine(Stream) :- medicineposition(H, X, Y), write(Stream, medicineposition(H, X, Y)), write(Stream, '.'), nl(Stream), fail.
+save_ammo(Stream) :- ammoposition(H, X, Y), write(Stream, ammoposition(H, X, Y)), write(Stream, '.'), nl(Stream), fail.
+
+save_armorlist(Stream) :- armorlist(A, B), write(Stream, armorlist(A, B)), write(Stream, '.'), nl(Stream), fail.
+save_weaponlist(Stream) :- weaponlist(A, B), write(Stream, weaponlist(A, B)), write(Stream, '.'), nl(Stream), fail.
+save_ammoweapon(Stream) :- ammoweapon(A, B), write(Stream, ammoweapon(A, B)), write(Stream, '.'), nl(Stream), fail.
+
+gload(Filename):-
+	loads(Filename).
+
+loads(Filetxt):-
+	reset,
+	atom_concat('savedata/', Filetxt, Filename),
+	open(Filename, read, Stream),
+	repeat,
+		read(Stream, In),
+		asserta(In),
+	at_end_of_stream(Stream),
+	close(Stream),
+	nl, write('Savegame has been loaded successfully!'), nl, !.
+
+loads(Filename):-
+	nl, write('File '), write(Filename), write(' isn\'t found!'), nl, fail.
