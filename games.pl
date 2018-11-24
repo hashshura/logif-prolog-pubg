@@ -96,8 +96,8 @@ start :-
 	write('    O = ammo        '), nl,
 	write('    P = player      '), nl,
 	write('    E = enemy       '), nl,
-	write('    - = accessible  '), nl,
-	write('    X = inaccessible'), nl,
+	write('    _ = open field  '), nl,
+	write('    X = deadzone    '), nl,
 	nl.
 
 /*maps stuffs */
@@ -130,9 +130,9 @@ rest :-
 	playerposition(X, Y),
 	(
 		deadzone(X, Y),
-		write('Alas, sometimes "a while" means forever. A helicopter comes to your vicinity.'), nl,
-		write('"A Warrior attempts trespassing," a voice shouted.'), nl, nl,
-		write('BANG! You have been shot.'), nl,
+		write('Alas, sometimes "a while" does mean forever. Your resting place has become a deadzone.'), nl,
+		write('"A Warrior attempts trespassing," a voice reverberates.'), nl, nl,
+		write('ZZAP! The electromagnetic force inside the deadzone ravages your intestines.'), nl,
 		write('Blood gushing through your veins, you are now sleeping so soundly...'), nl, nl,
 		gameover, !;
 		1 == 1
@@ -170,12 +170,14 @@ printlocation(X, Y) :-
 	write('.'), nl.
 
 printwalk :-
+	step(Step), Mod is Step mod 5,
+	(Mod == 0, nl, write('A gust of wind sweeps by, the battle area has been reduced!'), nl, nl, !; Mod \= 0),
 	playerposition(X, Y),
 	(
 		deadzone(X, Y),
-		write('You are stepping into the deadzone. A helicopter comes to your vicinity.'), nl,
-		write('"A Warrior attempts trespassing," a voice shouted.'), nl, nl,
-		write('BANG! You have been shot.'), nl,
+		write('You are stepping into the deadzone.'), nl,
+		write('"A Warrior attempts trespassing," a voice reverberates.'), nl, nl,
+		write('ZZAP! The electromagnetic force inside the deadzone ravages your intestines.'), nl,
 		write('Blood gushing through your veins, you are now sleeping so soundly...'), nl, nl,
 		gameover, !;
 		1 == 1
@@ -204,9 +206,7 @@ printwalk :-
 			(deadzone(X, Ynp), write('To the west is the deadzone. '), !);
 			(write('To the west is an open field. ')))
 		)
-	),
-	step(Step), Mod is Step mod 5,
-	(Mod == 0, nl, write('A gust of wind sweeps by, the battle area has been reduced!'), !; Mod \= 0).
+	).
 	
 surrounding :-
 	playerposition(X, Y),
@@ -331,16 +331,16 @@ spawnmedicine :-
 /*temporary rules */
 w :- cekstamina, inc, retract(playerposition(X, Y)), Next_y is Y-1, asserta(playerposition(X, Next_y)), printwalk,
 	 retract(stamina(S)), N is S-10, asserta(stamina(N)), !;
-	 write('You dont have enough stamina to walk, please take a rest first!').
+	 write('You don\'t have enough stamina to walk, please take a rest first!').
 s :- cekstamina, inc, retract(playerposition(X, Y)), Next_x is X+1, asserta(playerposition(Next_x, Y)), printwalk,
 	 retract(stamina(S)), N is S-10, asserta(stamina(N)), !;
-	 write('You dont have enough stamina to walk, please take a rest first!').
+	 write('You don\'t have enough stamina to walk, please take a rest first!').
 e :- cekstamina, inc, retract(playerposition(X, Y)), Next_y is Y+1, asserta(playerposition(X, Next_y)), printwalk,
 	 retract(stamina(S)), N is S-10, asserta(stamina(N)), !;
-	 write('You dont have enough stamina to walk, please take a rest first!').
+	 write('You don\'t have enough stamina to walk, please take a rest first!').
 n :- cekstamina, inc, retract(playerposition(X, Y)), Next_x is X-1, asserta(playerposition(Next_x, Y)), printwalk,
 	 retract(stamina(S)), N is S-10, asserta(stamina(N)), !;
-	 write('You dont have enough stamina to walk, please take a rest first!').
+	 write('You don\'t have enough stamina to walk, please take a rest first!').
 
 cekstamina :- stamina(N), N>=10.
 
@@ -375,13 +375,13 @@ addinventory(Object, X, Y) :- isarmor(Object), asserta(armorposition(Object, X, 
 addinventory(Object, X, Y) :- ismedicine(Object), asserta(medicineposition(Object, X, Y)), write('Inventory is full!'), nl, !.
 
 addammo(Ammo, X, Y) :- (Ammo == pelurupistol), !, retract(ammoweapon(pelurupistol, P)), YY is P + 3, asserta(ammoweapon(Ammo, YY)), 
-					   write('You took the '), write(Ammo), !.
+					   write('You took the '), write(Ammo), write('!'), !.
 addammo(Ammo, X, Y) :- (Ammo == peluruak47), !, retract(ammoweapon(peluruak47, P)), YY is P + 1, asserta(ammoweapon(Ammo, YY)), 
-						write('You took the '), write(Ammo), !.
+						write('You took the '), write(Ammo), write('!'), !.
 addammo(Ammo, X, Y) :- (Ammo == peluruwatergun), !, retract(ammoweapon(peluruwatergun, P)), YY is P+5, asserta(ammoweapon(Ammo, YY)), 
-						write('You took the '), write(Ammo), !. 
+						write('You took the '), write(Ammo), write('!'), !. 
 
-printstatusinventory(I) :- isiinventory(I,X), (X == 0), jumlahammo(Y), (Y == 0), write('Your inventory is empty!'), nl, !.
+printstatusinventory(I) :- isiinventory(I,X), (X == 0), jumlahammo(Y), (Y == 0), write(' Your inventory is empty!'), nl, !.
 printstatusinventory(I) :- isiinventory(I,XX), (XX > 0), jumlahammo(YY), (YY == 0), printinventory(I), !.
 printstatusinventory(I) :- isiinventory(I,XXX), (XXX > 0), jumlahammo(YYY), (YYY > 0), printinventory(I), printinventoryammo1, printinventoryammo2, printinventoryammo3, !.
 printstatusinventory(I) :- isiinventory(I,XXXX), (XXXX == 0), jumlahammo(YYYY), (YYYY > 0), printinventoryammo1, printinventoryammo2, printinventoryammo3.
@@ -394,12 +394,14 @@ printinventoryammo3 :- ammoweapon(peluruwatergun, X), (X > 0),write('--->'),  wr
 					   1==1.
 
 /*player status*/
-status :- health(H), write('Health: '), write(H), nl,
-		  stamina(S), write('Stamina: '), write(S), nl, 
-		  armor(Ar), write('Armor: '), write(Ar), nl, 
-		  weapon(W), write('Weapon: '), write(W), nl, 
-		  ammo(Ammo), write('Ammo: '), write(Ammo), nl, 
-		  inventory(Inventory), write('Inventory: '), nl, printstatusinventory(Inventory), !.
+status :-
+		write('[Lone Warrior]'), nl,
+		write(' Health:  '), health(H), write(H), nl,
+		write(' Stamina: '), stamina(S), write(S), nl, 
+		write(' Armor:   '), armor(Ar), write(Ar), nl, 
+		write(' Weapon:  '), weapon(W), write(W), nl, 
+		write(' Ammo:    '), ammo(Ammo), write(Ammo), nl, 
+		write(' Inventory: '), nl, inventory(Inventory), printstatusinventory(Inventory), !.
 
 
 /*classify an object */
@@ -425,7 +427,7 @@ takemedicine(X, Y) :- retract(medicineposition(Medicine, X, Y)), addinventory(Me
 takeammo(Ammo, X, Y) :- retract(ammoposition(Ammo, X, Y)), addammo(Ammo, X, Y). 
 
 /*use an object in inventory, and removed it from inventory */
-use(X) :- isexist(X), isweapon(X), retract(weapon(W)), write(X), write(' is equipped.'), asserta(weapon(X)), removeobject(X), changeweapon(W), !. 
+use(X) :- isexist(X), isweapon(X), retract(weapon(W)), write(X), write(' is equipped. '), asserta(weapon(X)), removeobject(X), changeweapon(W), !. 
 use(X) :- isexist(X), (X == 'bandage'), retract(health(H)), NewH is H + 10, asserta(health(NewH)), cekhealth(X), !.
 use(X) :- isexist(X), (X == 'betadine'), retract(health(H)), NewH is H + 10, asserta(health(NewH)), cekhealth(X), !.
 use(X) :- isexist(X), (X == 'hat'), retract(armor(Armor)),Newarmor is Armor + 5, asserta(armor(Newarmor)), removeobject(X), write('Your Armor is increasing 5 units!'), nl, !.
@@ -468,7 +470,7 @@ drop(X) :- isexist(X), isweapon(X), removeobject(X), retract(playerposition(PX, 
 			asserta(weaponposition(X, PX, PY)), !.
 drop(X) :- isammo(X), ammoweapon(X, Y), (Y > 0, retract(ammoweapon(X, Y)), asserta(ammoweapon(X, 0)), playerposition(PX, PY), 
 			asserta(ammoposition(X, PX, PY))), !.
-drop(X) :- write('You dont have the '), write(X), write(' item'), nl, !.
+drop(X) :- write('You don\'t have the '), write(X), write(' item.'), nl, !.
 
 gameover :-
 	write('GAME OVER!'), nl, 
@@ -546,5 +548,5 @@ save(Filename):-
 	write(Stream, Armor), nl(Stream),
 	write(Stream, Ammo), nl(Stream),
 	write(Stream, Inventory), nl(Stream),
-	write('Save data successfully created !'), nl,
+	write('Save data successfully created!'), nl,
 	close(Stream).
