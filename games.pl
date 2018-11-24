@@ -93,8 +93,8 @@ start :-
 	write('    use(Object). -- use an object                  '), nl,
 	write('    attack. -- attack enemy on your vicinity       '), nl,
 	write('    status. -- show your status                    '), nl,
-	write('    save(Filename). -- save your game              '), nl,
-	write('    loads(Filename). -- load previously saved game '), nl,
+	write('    gsave(Filename). -- save your game             '), nl,
+	write('    gload(Filename). -- load previously saved game '), nl,
 	nl,
 	write(' Legends:           '), nl,
 	write('    W = weapon      '), nl,
@@ -356,7 +356,7 @@ isiinventory([], 0).
 isiinventory([H|T], X) :- isiinventory(T, Y), X is (Y + 1). 
 
 printinventory([]).
-printinventory([H|T]) :- write('--->'), write(H), nl, printinventory(T).
+printinventory([H|T]) :- write(' - '), write(H), nl, printinventory(T).
 
 isada(Object, []) :- false.
 isada(Object, [H|T]) :- (Object == H), !.
@@ -393,22 +393,22 @@ printstatusinventory(I) :- isiinventory(I,XX), (XX > 0), jumlahammo(YY), (YY == 
 printstatusinventory(I) :- isiinventory(I,XXX), (XXX > 0), jumlahammo(YYY), (YYY > 0), printinventory(I), printinventoryammo1, printinventoryammo2, printinventoryammo3, !.
 printstatusinventory(I) :- isiinventory(I,XXXX), (XXXX == 0), jumlahammo(YYYY), (YYYY > 0), printinventoryammo1, printinventoryammo2, printinventoryammo3.
 
-printinventoryammo1 :- ammoweapon(peluruak47, X), (X > 0), write('--->'), write(peluruak47), nl,!;
+printinventoryammo1 :- ammoweapon(peluruak47, X), (X > 0), write(' - '), write(peluruak47), nl,!;
 					   1==1.
-printinventoryammo2 :- ammoweapon(pelurupistol, X), (X > 0), write('--->'), write(pelurupistol), nl,!;
+printinventoryammo2 :- ammoweapon(pelurupistol, X), (X > 0), write(' - '), write(pelurupistol), nl,!;
 					   1==1.
-printinventoryammo3 :- ammoweapon(peluruwatergun, X), (X > 0),write('--->'),  write(peluruwatergun), nl,!;
+printinventoryammo3 :- ammoweapon(peluruwatergun, X), (X > 0), write(' - '), write(peluruwatergun), nl,!;
 					   1==1.
 
 /*player status*/
 status :-
 		write('[Lone Warrior]'), nl,
-		write(' Health:  '), health(H), write(H), nl,
-		write(' Stamina: '), stamina(S), write(S), nl, 
-		write(' Armor:   '), armor(Ar), write(Ar), nl, 
-		write(' Weapon:  '), weapon(W), write(W), nl, 
-		write(' Ammo:    '), ammo(Ammo), write(Ammo), nl, 
-		write(' Inventory: '), nl, inventory(Inventory), printstatusinventory(Inventory), !.
+		write(' Health    : '), health(H), write(H), nl,
+		write(' Stamina   : '), stamina(S), write(S), nl, 
+		write(' Armor     : '), armor(Ar), write(Ar), nl, 
+		write(' Weapon    : '), weapon(W), write(W), nl, 
+		write(' Ammo      : '), ammo(Ammo), write(Ammo), nl, 
+		write(' Inventory : '), nl, inventory(Inventory), printstatusinventory(Inventory), !.
 
 
 /*classify an object */
@@ -536,7 +536,7 @@ enemyattack(Wp,We,He) :-
 	).
 
 /* Load and save game */
-save(Filetxt):-
+gsave(Filetxt):-
 	atom_concat('savedata/', Filetxt, Filename),
 	open(Filename, write, Stream),
 	save_facts(Stream),
@@ -583,7 +583,7 @@ save_armorlist(Stream) :- armorlist(A, B), write(Stream, armorlist(A, B)), write
 save_weaponlist(Stream) :- weaponlist(A, B), write(Stream, weaponlist(A, B)), write(Stream, '.'), nl(Stream), fail.
 save_ammoweapon(Stream) :- ammoweapon(A, B), write(Stream, ammoweapon(A, B)), write(Stream, '.'), nl(Stream), fail.
 
-load(Filename):-
+gload(Filename):-
 	loads(Filename).
 
 loads(Filetxt):-
