@@ -428,7 +428,7 @@ takemedicine(X, Y) :- retract(medicineposition(Medicine, X, Y)), addinventory(Me
 takeammo(X, Y) :- retract(ammoposition(Ammo, X, Y)), addammo(Ammo, X, Y). 
 
 /*use an object in inventory, and removed it from inventory */
-use(X) :- isexist(X), isweapon(X), retract(weapon(W)), write(X), write(' is equipped.'), asserta(weapon(X)), removeobject(X), changeweapon(W), !. 
+use(X) :- isexist(X), isweapon(X), retract(weapon(W)), write(X), write(' is equipped. '), asserta(weapon(X)), removeobject(X), changeweapon(W), !. 
 use(X) :- isexist(X), (X == 'bandage'), retract(health(H)), NewH is H + 10, asserta(health(NewH)), cekhealth(X), !.
 use(X) :- isexist(X), (X == 'betadine'), retract(health(H)), NewH is H + 10, asserta(health(NewH)), cekhealth(X), !.
 use(X) :- isexist(X), (X == 'hat'), retract(armor(Armor)),Newarmor is Armor + 5, asserta(armor(Newarmor)), removeobject(X), write('Your Armor is increasing by 5 units!'), nl, !.
@@ -437,13 +437,13 @@ use(X) :- isexist(X), (X == 'helmet'), retract(armor(Armor)),Newarmor is Armor+1
 use(X) :- isexist(X), (X == 'kopyah'), retract(armor(Armor)),Newarmor is Armor+20, asserta(armor(Newarmor)), removeobject(X), write('Your Armor is increasing by 20 units!'), nl, !.
 use(X) :- (X == 'peluruak47'), weapon(W), W == 'ak47', ammoweapon(peluruak47, P), retract(ammo(Now)), Q is 3 - Now, mini(P, Q, Mini), 
 			Np is P - Mini, asserta(ammoweapon(peluruak47,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
-			write('ak47 '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
+			write('ak47 is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
 use(X) :- (X == pelurupistol), weapon(W), W == pistol, ammoweapon(pelurupistol, P), retract(ammo(Now)), Q is 7 - Now, mini(P, Q, Mini), 
 			Np is P - Mini, asserta(ammoweapon(peluruapistol,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
-			write('pistol '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
+			write('pistol is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
 use(X) :- (X == peluruwatergun), weapon(W), W == watergun, ammoweapon(peluruwatergun, P), retract(ammo(Now)), Q is 10 - Now, mini(P, Q, Mini), 
 			Np is P - Mini, asserta(ammoweapon(peluruwatergun,Np)), Nnow is Now + Mini, asserta(ammo(Nnow)), 
-			write('watergun '), write(' is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
+			write('watergun is reloaded with '), write(Mini), write(' ammo. Ready for chicken dinner!'), nl, !.
 use(X) :- write('You can\'t use '), write(X), write(' item'). 
 cekhealth(X) :- health(H), H>100, retract(health(H)), asserta(health(100)),write('Your Health is at its maximum!'),nl,!;
 			    (X == bandage), write('Your Health is increasing by 10 units!'), nl, removeobject(X), !;
