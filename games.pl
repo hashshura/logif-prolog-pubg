@@ -127,8 +127,8 @@ printmap(X, Y) :-
 rest :-
 	inc, enemywalk(1), retract(stamina(Prev)), Now is Prev+20, asserta(stamina(Now)), restmax,
 	write('You rest for a while, increasing your stamina by 10.'), nl,
+	playerposition(X, Y),
 	(
-		playerposition(X, Y),
 		deadzone(X, Y),
 		write('Alas, sometimes "a while" means forever. A helicopter comes to your vicinity.'), nl,
 		write('"A Warrior attempts trespassing," a voice shouted.'), nl, nl,
@@ -138,7 +138,6 @@ rest :-
 		1 == 1
 	),
 	(
-		playerposition(X, Y),
 		enemyposition(_,X, Y),
 		write('Unknowingly, an enemy ambushes you from behind, commencing a duel!'), nl,
 		doattack(X, Y), !;
