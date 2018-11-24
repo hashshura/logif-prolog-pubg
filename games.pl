@@ -510,8 +510,8 @@ playerattack(Wp,We,He) :-
 		retract(enemiesleft(Left)), Next_Left is Left - 1, asserta(enemiesleft(Next_Left)),
 		retract(health(Htotal)),
 		(
-			Htotal > 100, !, assert(health(100)), Atotal is Htotal - 100, retract(armor(_)), assert(armor(Atotal));
-			assert(health(Htotal))
+			Htotal > 100, !, asserta(health(100)), Atotal is Htotal - 100, retract(armor(_)), asserta(armor(Atotal));
+			asserta(health(Htotal))
 		)
 	).
 
