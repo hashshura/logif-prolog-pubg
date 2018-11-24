@@ -508,7 +508,7 @@ use(X) :- isexist(X), X == airballoon,
 		write('Go load him, the Imba Warrior!'), nl,
 		halt;
 		write('You feel like it\'s not okay to launch the airballoon'), nl, write('without all five of the "Warriors".'), nl, !
-	).
+	), !.
 use(X) :- isexist(X), isweapon(X), retract(weapon(W)), write(X), write(' is equipped. '), asserta(weapon(X)), removeobject(X), changeweapon(W), enemywalk(1), !. 
 use(X) :- isexist(X), (X == bandage), retract(health(H)), NewH is H + 10, asserta(health(NewH)), cekhealth(X), enemywalk(1), removeobject(X), !.
 use(X) :- isexist(X), (X == betadine), retract(health(H)), NewH is H + 15, asserta(health(NewH)), cekhealth(X), enemywalk(1), removeobject(X), !.
@@ -554,6 +554,7 @@ mini(X, Y, Z) :- (X < Y, Z is X), !.
 mini(X, Y, Z) :- (Y =< X, Z is Y), !.
 
 /* drop an object from inventory */
+drop(X) :- X == airballoon, !, write('You feel not like dropping the airballoon.'), nl.
 drop(X) :- isexist(X), isarmor(X), removeobject(X), retract(playerposition(PX, PY)), asserta(playerposition(PX, PY)), 
 			asserta(armorposition(X, PX, PY)), write('You drop '), write(X), write(' item'), enemywalk(1), !.
 drop(X) :- isexist(X), ismedicine(X), removeobject(X), retract(playerposition(PX, PY)), asserta(playerposition(PX, PY)),
