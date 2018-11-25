@@ -615,7 +615,9 @@ doattack(Xp, Yp) :-
 	enemyposition(Id,Xp,Yp),
 	!, weapon(Wp), enemyweapon(Id, We),
 	retract(health(Hp)), armor(Ap), Htotal is Hp + Ap, asserta(health(Htotal)),
-	playerattack(Wp,We,100).
+	playerattack(Wp,We,100),
+	retract(enemyposition(Id,Xp,Yp)),
+	checkvictory.
 
 playerattack(Wp,We,He) :- ammo(A), A == 0, !, enemyattack(Wp,We,He).
 playerattack(Wp,We,He) :-
@@ -627,7 +629,6 @@ playerattack(Wp,We,He) :-
 		Heleft > 0, !, write('The battle continues!'), nl, enemyattack(Wp,We,Heleft);
 		write('The enemy is dead, blood gushing through his veins.'), nl,
 		retract(enemiesleft(Left)), Next_Left is Left - 1, asserta(enemiesleft(Next_Left)),
-		retract(enemyposition(Id,Xp,Yp)), checkvictory,
 		retract(health(Htotal)),
 		(
 			Htotal > 100, !, asserta(health(100)), Atotal is Htotal - 100, retract(armor(_)), asserta(armor(Atotal));
