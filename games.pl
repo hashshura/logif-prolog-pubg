@@ -171,8 +171,8 @@ enemywalk(Id) :-
 	(
 		X > Xp, X1 is X - 1, \+ enemyposition(_,X1,Y), !, asserta(enemyposition(Id,X1,Y));
 		X < Xp, X1 is X + 1, \+ enemyposition(_,X1,Y), !, asserta(enemyposition(Id,X1,Y));
-		Y > Yp, Y1 is Y - 1, \+ enemyposition(_,X1,Y), !, asserta(enemyposition(Id,X,Y1));
-		Y < Yp, Y1 is Y + 1, \+ enemyposition(_,X1,Y), !, asserta(enemyposition(Id,X,Y1));
+		Y > Yp, Y1 is Y - 1, \+ enemyposition(_,X,Y1), !, asserta(enemyposition(Id,X,Y1));
+		Y < Yp, Y1 is Y + 1, \+ enemyposition(_,X,Y1), !, asserta(enemyposition(Id,X,Y1));
 		asserta(enemyposition(Id,X,Y))
 	),
 	NextId is Id + 1, 
