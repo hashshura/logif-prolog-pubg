@@ -1,0 +1,2 @@
+[attack],[enemy],[look],[main],[map],[object],[persuade],[player],[save],[spawn],[win].
+
