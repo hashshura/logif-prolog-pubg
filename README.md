@@ -1,4 +1,4 @@
-# pubg (a.k.a. Prolog's Unknown Battlegrounds)
+# logif-pubg (a.k.a. Prolog's Unknown Battlegrounds)
 
 **Please note that the default branch is *modularize*.**
 
